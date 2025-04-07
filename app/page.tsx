@@ -87,7 +87,7 @@ export default function Home() {
             width={16}
             height={16}
           />
-          Thuriya Ye Naing 
+          Heinthant Zaw 
         </a>
       </footer>
     </div>
