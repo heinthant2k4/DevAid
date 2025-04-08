@@ -123,7 +123,7 @@ const DonationsPage: React.FC = () => {
       page.drawText(name, {
         x: 130,
         y: 275,
-        size: 24,
+        size: 16,
         font,
         color: rgb(0, 0, 0), 
       });
