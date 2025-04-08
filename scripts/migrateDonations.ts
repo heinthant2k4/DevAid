@@ -43,7 +43,7 @@ A2:C25 means:
 
     Covers all 24 rows of donation data
  */
-const RANGE = "Sheet1!A2:C25"; 
+const RANGE = "Sheet1!A2:C"; 
 
 async function migrateDonations() {
   try {
@@ -61,20 +61,35 @@ async function migrateDonations() {
     }
 
     for (const row of rows) {
-      const [name,amount, date] = row;
+      const [name, amount, date] = row;
 
       if (!name || !amount) continue; // Skip incomplete rows
 
+      // Create a composite key
+      const compositeKey = `${name}_${date}`;
+
+      // Check if the record already exists in Firestore
+      const existingDocs = await db.collection("donations")
+        .where("compositeKey", "==", compositeKey)
+        .get();
+
+      if (!existingDocs.empty) {
+        console.log(`⚠️ Skipping duplicate: ${name} - MMK${amount}`);
+        continue; // Skip this record if it already exists
+      }
+
+      // Add the record to Firestore
       await db.collection("donations").add({
+        compositeKey, // Store the composite key
         name,
         amount: parseFloat(amount),
-        date: date ? String(date): ""
+        date: date ? String(date) : "",
       });
 
       console.log(`✅ Migrated: ${name} - MMK${amount}`);
     }
 
-    console.log(" Migration completedly.");
+    console.log("Migration completed successfully.");
   } catch (error) {
     console.error("❌ Migration failed:", error);
   }
