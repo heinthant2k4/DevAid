@@ -1,56 +1,94 @@
+// app/admin/donations/page.tsx
+'use client';
 
+import React, { useState, useEffect } from 'react';
+import AdminLayout from '../components/layout';
+import { Table, Button, message, Space, Tag } from 'antd';
+import { collection, query, limit, startAfter, getDocs, doc, deleteDoc } from 'firebase/firestore';
+import { db } from '@/lib/firebaseClient';
 
+interface Donation {
+  id: string;
+  name: string;
+  amount: number;
+  compositeKey: string;
+}
 
+const PAGE_SIZE = 10;
 
+const DonationsPage: React.FC = () => {
+  const [data, setData] = useState<Donation[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [lastDoc, setLastDoc] = useState<any>(null);
+  const [hasMore, setHasMore] = useState(true);
 
-import React, { useState, useEffect } from "react";
-import AdminLayout from "../components/layout";
-import { Table, Button } from "antd";
+  const fetchDonations = async (loadMore = false) => {
+    try {
+      setLoading(true);
 
-/**
- * A component that displays a table of donations with donor name, amount, and date.
- * The component fetches donation data from Firestore or API on mount and renders
- * a table with the data. The table also includes an actions column with a delete
- * button.
- */
+      let q = query(collection(db, 'donations'), limit(PAGE_SIZE));
+      if (loadMore && lastDoc) {
+        q = query(collection(db, 'donations'), startAfter(lastDoc), limit(PAGE_SIZE));
+      }
 
-const Donations: React.FC = () => {
-  const [data, setData] = useState([{key: "", name: "", amount: 0, date: ""}]);
+      const snapshot = await getDocs(q);
+      const newDonations = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Donation));
+
+      setData(prev => (loadMore ? [...prev, ...newDonations] : newDonations));
+      setLastDoc(snapshot.docs[snapshot.docs.length - 1]);
+      setHasMore(snapshot.docs.length === PAGE_SIZE);
+    } catch (error) {
+      console.error('Error fetching donations:', error);
+      message.error('Failed to load donations');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // Fetch donations from Firestore or API
-    const fetchData = async () => {
-      const donations = [
-        { key: "1", name: "John Doe", amount: 5000, date: "2025-04-01" },
-        { key: "2", name: "Jane Smith", amount: 3000, date: "2025-04-02" },
-      ];
-      setData(donations);
-    };
-
-    fetchData();
+    fetchDonations();
   }, []);
+
+  const handleDelete = async (id: string, compositeKey: string) => {
+    try {
+      await deleteDoc(doc(db, 'donations', id));
+      setData(prev => prev.filter(item => item.id !== id));
+      message.success(`Deleted ${compositeKey}`);
+    } catch (err) {
+      console.error('Delete failed:', err);
+      message.error('Failed to delete');
+    }
+  };
 
   const columns = [
     {
-      title: "Donor Name",
-      dataIndex: "name",
-      key: "name",
+      title: 'Donor Name',
+      dataIndex: 'name',
+      key: 'name',
+      render: (text: string) => <strong>{text}</strong>,
     },
     {
-      title: "Amount (MMK)",
-      dataIndex: "amount",
-      key: "amount",
+      title: 'Amount (MMK)',
+      dataIndex: 'amount',
+      key: 'amount',
+      render: (amount: number) => <Tag color="green">{amount.toLocaleString()} MMK</Tag>,
     },
     {
-      title: "Date",
-      dataIndex: "date",
-      key: "date",
+      title: 'Reference',
+      dataIndex: 'compositeKey',
+      key: 'compositeKey',
+      render: (key: string | undefined) =>
+        key ? (
+          <small style={{ fontFamily: 'monospace', color: '#999' }}>{key.slice(0, 8)}...</small>
+        ) : (
+          <small style={{ fontFamily: 'monospace', color: '#999' }}>N/A</small>
+        ),
     },
     {
-      title: "Actions",
-      key: "actions",
-      render: (_: any, record: any) => (
-        <Button type="link" danger>
+      title: 'Actions',
+      key: 'actions',
+      render: (_: any, record: Donation) => (
+        <Button type="link" danger onClick={() => handleDelete(record.id, record.compositeKey)} loading={loading}>
           Delete
         </Button>
       ),
@@ -59,10 +97,33 @@ const Donations: React.FC = () => {
 
   return (
     <AdminLayout>
-      <h1 style={{ fontSize: "24px", fontWeight: "bold", marginBottom: "16px" }}>Donations</h1>
-      <Table columns={columns} dataSource={data} />
+      <Space direction="vertical" style={{ width: '100%' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h1 style={{ fontSize: 24, fontWeight: 'bold' }}>Donations ({data.length})</h1>
+          <Button type="primary" onClick={() => fetchDonations()} loading={loading}>
+            Refresh
+          </Button>
+        </div>
+
+        <Table
+          columns={columns}
+          dataSource={data}
+          rowKey="id"
+          loading={loading}
+          pagination={false}
+          scroll={{ x: true }}
+        />
+
+        {hasMore && (
+          <div style={{ textAlign: 'center', marginTop: 16 }}>
+            <Button onClick={() => fetchDonations(true)} loading={loading} type="primary">
+              Load More
+            </Button>
+          </div>
+        )}
+      </Space>
     </AdminLayout>
   );
 };
 
-export default Donations;
+export default DonationsPage;

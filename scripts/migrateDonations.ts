@@ -1,7 +1,8 @@
-import "dotenv/config"
+import "dotenv/config";
 import { google } from "googleapis";
 import { JWT } from "google-auth-library";
-import admin from "firebase-admin";
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getFirestore, collection, query, where, getDocs, addDoc, Timestamp } from "firebase/firestore";
 
 /**
  * This script migrates donation data from a Google Sheet to Firestore.
@@ -11,18 +12,19 @@ import admin from "firebase-admin";
  * Make sure to set the required environment variables before running the script.
  */
 
-// --- Firestore Setup ---
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-    }),
-  });
-}
+// --- Firebase Client SDK Setup ---
+const firebaseConfig = {
+  apiKey: process.env.FIREBASE_API_KEY,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.FIREBASE_APP_ID,
+};
 
-const db = admin.firestore();
+// Initialize Firebase app (ensure it's not initialized multiple times)
+const firebaseApp = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const db = getFirestore(firebaseApp);
 
 // --- Google Sheets Auth ---
 const auth = new JWT({
@@ -32,18 +34,7 @@ const auth = new JWT({
 });
 
 const SHEET_ID = process.env.GOOGLE_SHEET_ID!;
-/**
- * Sheet1 is the tab name 
-
-A2:C25 means:
-
-    Start at cell A2
-
-    End at C25
-
-    Covers all 24 rows of donation data
- */
-const RANGE = "Sheet1!A2:C"; 
+const RANGE = "Sheet1!A2:C"; // Adjust the range as needed
 
 async function migrateDonations() {
   try {
@@ -61,17 +52,17 @@ async function migrateDonations() {
     }
 
     for (const row of rows) {
-      const [name, amount, date] = row;
+      const [name, amount] = row;
 
       if (!name || !amount) continue; // Skip incomplete rows
 
       // Create a composite key
-      const compositeKey = `${name}_${date}`;
+      const compositeKey = `${name}_MMK${amount}`;
 
       // Check if the record already exists in Firestore
-      const existingDocs = await db.collection("donations")
-        .where("compositeKey", "==", compositeKey)
-        .get();
+      const donationsRef = collection(db, "donations");
+      const existingDocsQuery = query(donationsRef, where("compositeKey", "==", compositeKey));
+      const existingDocs = await getDocs(existingDocsQuery);
 
       if (!existingDocs.empty) {
         console.log(`⚠️ Skipping duplicate: ${name} - MMK${amount}`);
@@ -79,11 +70,10 @@ async function migrateDonations() {
       }
 
       // Add the record to Firestore
-      await db.collection("donations").add({
+      await addDoc(donationsRef, {
         compositeKey, // Store the composite key
         name,
         amount: parseFloat(amount),
-        date: date ? String(date) : "",
       });
 
       console.log(`✅ Migrated: ${name} - MMK${amount}`);
