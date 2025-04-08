@@ -14,6 +14,7 @@
     "@antv/g2plot": "^2.4.33",
     "antd": "^5.24.6",
     "dotenv": "^16.4.7",
+    "firebase": "^11.6.0",
     "firebase-admin": "^13.2.0",
     "googleapis": "^148.0.0",
     "next": "15.2.4",

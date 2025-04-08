@@ -51,6 +51,6 @@ const Dashboard: React.FC = () => {
       </div>
     </AdminLayout>
   );
-};``
+};
 
 export default Dashboard;
