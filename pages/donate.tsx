@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Card, Row, Col, Typography, Modal, Button } from 'antd';
-import { ArrowLeftOutlined, BulbOutlined } from '@ant-design/icons';
+import React, { useState, useEffect } from 'react';
+import { Card, Row, Col, Typography, Modal, Button, Form, Input, message } from 'antd';
+import { ArrowLeftOutlined, BulbOutlined, KeyOutlined } from '@ant-design/icons';
 import Link from 'next/link';
 import Image from 'next/image';
 import { HomeOutlined } from '@ant-design/icons';
+import { collection, addDoc, query, where, getDocs } from 'firebase/firestore'; // Firebase imports
+import { db } from '@/lib/firebaseClient'; // Import Firebase client
 const { Title, Paragraph } = Typography;
 
 const DonatePage: React.FC = () => {
@@ -14,8 +16,11 @@ const DonatePage: React.FC = () => {
         AYAPay: false,
         waveMoney: false,
         uab: false,
+        transactionKey: false,
     });
-    const [isDarkMode, setIsDarkMode] = useState(false); // New state for theme
+    const [isDarkMode, setIsDarkMode] = useState(false);
+    const [uniqueKey, setUniqueKey] = useState(''); // State to store the generated key
+    const [form] = Form.useForm();
 
     const accountNumbers = {
         kbzPay: '1234-5678-9012',
@@ -31,8 +36,62 @@ const DonatePage: React.FC = () => {
         uab: '/uab-qr.png',
     };
 
+    // Generate a unique key when the component mounts
+    useEffect(() => {
+        const generateUniqueKey = () => {
+            if (crypto?.randomUUID) {
+                return crypto.randomUUID();
+            }
+            return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+        };
+        const key = generateUniqueKey();
+        setUniqueKey(key);
+    }, []);
+
     const toggleTheme = () => {
         setIsDarkMode(!isDarkMode);
+    };
+
+    // Function to store the unique key in Firebase
+    const storeUniqueKey = async (paymentMethod: string) => {
+        try {
+            const donationKeyData = {
+                uniqueKey,
+                paymentMethod,
+                timestamp: new Date().toISOString(),
+                status: 'pending', // You can update this status later (e.g., after verification)
+            };
+            await addDoc(collection(db, 'donationKeys'), donationKeyData);
+            message.success('Donation key stored successfully!');
+        } catch (error) {
+            console.error('Error storing unique key:', error);
+            message.error('Failed to store donation key.');
+        }
+    };
+
+    // Handle form submission to verify the transaction key
+    const handleKeySubmit = async (values: { transactionKey: string }) => {
+        const { transactionKey } = values;
+        try {
+            // Query Firebase to check if the key exists
+            const q = query(collection(db, 'donationKeys'), where('uniqueKey', '==', transactionKey));
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+                const doc = querySnapshot.docs[0];
+                const data = doc.data();
+                message.success(`Transaction key is valid! Payment method: ${data.paymentMethod}`);
+                // Optionally, update the status in Firebase to 'verified'
+                // await updateDoc(doc.ref, { status: 'verified' });
+            } else {
+                message.error('Invalid transaction key. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error verifying transaction key:', error);
+            message.error('Error verifying transaction key. Please try again.');
+        }
+        setModalVisible({ ...modalVisible, transactionKey: false });
+        form.resetFields();
     };
 
     // Base styles that change based on theme with transitions
@@ -43,7 +102,7 @@ const DonatePage: React.FC = () => {
         fontFamily: '"Helvetica Neue", Arial, sans-serif',
         color: isDarkMode ? '#ffffff' : '#000000',
         textAlign: 'center' as const,
-        transition: 'background 0.5s ease, color 0.5s ease', // Added transition
+        transition: 'background 0.5s ease, color 0.5s ease',
     };
 
     const cardStyle: React.CSSProperties = {
@@ -54,7 +113,7 @@ const DonatePage: React.FC = () => {
         textAlign: 'center' as const,
         width: '120px',
         height: '120px',
-        transition: 'transform 0.3s ease, background 0.5s ease', // Updated transition
+        transition: 'transform 0.3s ease, background 0.5s ease',
         background: isDarkMode ? '#2C2C2C' : '#f0f0f0',
         display: 'flex',
         flexDirection: 'column',
@@ -74,7 +133,7 @@ const DonatePage: React.FC = () => {
         alignItems: 'center',
         margin: '0 auto',
         boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
-        transition: 'background 0.5s ease', // Added transition
+        transition: 'background 0.5s ease',
     };
 
     return (
@@ -90,7 +149,7 @@ const DonatePage: React.FC = () => {
                     top: '20px',
                     left: '20px',
                     margin: 0,
-                    transition: 'color 0.5s ease', // Added transition
+                    transition: 'color 0.5s ease',
                 }}
             >
                 DevAid
@@ -103,8 +162,8 @@ const DonatePage: React.FC = () => {
                 icon={<BulbOutlined />}
                 style={{
                     position: 'fixed',
-                    bottom: '20px', // Changed from top to bottom
-                    right: '20px',  // Changed from right to left
+                    bottom: '20px',
+                    right: '20px',
                     zIndex: 1000,
                     width: '50px',
                     height: '50px',
@@ -112,27 +171,9 @@ const DonatePage: React.FC = () => {
                     color: isDarkMode ? '#000000' : '#ffffff',
                     border: 'none',
                     boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
-                    transition: 'background-color 0.5s ease, color 0.5s ease', // Added transition
+                    transition: 'background-color 0.5s ease, color 0.5s ease',
                 }}
             />
-            {/* <button // Commented out instead of deleted
-                onClick={toggleTheme}
-                style={{
-                    position: 'fixed',
-                    top: '20px',
-                    right: '20px',
-                    zIndex: 1000,
-                    backgroundColor: isDarkMode ? '#ffffff' : '#000000',
-                    color: isDarkMode ? '#000000' : '#ffffff',
-                    border: 'none',
-                    padding: '8px 16px',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    transition: 'background-color 0.5s ease, color 0.5s ease', // Added transition
-                }}
-            >
-                {isDarkMode ? 'Light Mode' : 'Dark Mode'}
-            </button> */}
 
             {/* Header Section */}
             <section style={{ marginBottom: '40px', paddingTop: '40px' }}>
@@ -142,7 +183,7 @@ const DonatePage: React.FC = () => {
                     fontWeight: 700,
                     marginBottom: '15px',
                     letterSpacing: '-0.5px',
-                    transition: 'color 0.5s ease', // Added transition
+                    transition: 'color 0.5s ease',
                 }}>
                     DevAid
                 </Title>
@@ -152,7 +193,7 @@ const DonatePage: React.FC = () => {
                     maxWidth: '300px',
                     margin: '0 auto',
                     lineHeight: '1.5',
-                    transition: 'color 0.5s ease', // Added transition
+                    transition: 'color 0.5s ease',
                 }}>
                     Your donation will provide essential resources, support communities in need, and empower individuals to build a brighter future. Every contribution makes a difference!
                 </Paragraph>
@@ -168,7 +209,7 @@ const DonatePage: React.FC = () => {
                     textTransform: 'uppercase',
                     letterSpacing: '0.5px',
                     opacity: 0.8,
-                    transition: 'color 0.5s ease', // Added transition
+                    transition: 'color 0.5s ease',
                 }}>
                     Payments
                 </Title>
@@ -186,7 +227,10 @@ const DonatePage: React.FC = () => {
                         <Modal
                             title="KBZ Pay Donation"
                             visible={modalVisible.kbzPay}
-                            onCancel={() => setModalVisible({ ...modalVisible, kbzPay: false })}
+                            onCancel={() => {
+                                setModalVisible({ ...modalVisible, kbzPay: false });
+                                storeUniqueKey('KBZ Pay'); // Store the key when the modal is closed
+                            }}
                             footer={null}
                             centered
                             width={300}
@@ -198,6 +242,9 @@ const DonatePage: React.FC = () => {
                                 <Paragraph style={{ fontSize: '14px', color: isDarkMode ? '#ffffff' : '#000000', marginTop: '20px', transition: 'color 0.5s ease', padding: '20px' }}>
                                     09765127445 <br />
                                     Htet Yadanar Myo
+                                </Paragraph>
+                                <Paragraph style={{ fontSize: '14px', color: isDarkMode ? '#ffffff' : '#000000', marginTop: '10px', transition: 'color 0.5s ease' }}>
+                                    Unique Key: <strong>{uniqueKey}</strong>
                                 </Paragraph>
                             </div>
                         </Modal>
@@ -215,7 +262,10 @@ const DonatePage: React.FC = () => {
                         <Modal
                             title="AYA Pay Donation"
                             visible={modalVisible.AYAPay}
-                            onCancel={() => setModalVisible({ ...modalVisible, AYAPay: false })}
+                            onCancel={() => {
+                                setModalVisible({ ...modalVisible, AYAPay: false });
+                                storeUniqueKey('AYA Pay'); // Store the key when the modal is closed
+                            }}
                             footer={null}
                             centered
                             width={300}
@@ -228,95 +278,19 @@ const DonatePage: React.FC = () => {
                                     09765127445 <br />
                                     Htet Yadanar Myo
                                 </Paragraph>
+                                <Paragraph style={{ fontSize: '14px', color: isDarkMode ? '#ffffff' : '#000000', marginTop: '10px', transition: 'color 0.5s ease' }}>
+                                    Unique Key: <strong>{uniqueKey}</strong>
+                                </Paragraph>
                             </div>
                         </Modal>
                     </Col>
-                    {/* <Col xs={20} sm={12} md={5}>
-                        <Card
-                            style={cardStyle}
-                            onClick={() => setModalVisible({ ...modalVisible, waveMoney: true })}
-                            onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-5px)')}
-                            onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
-                        >
-                            <Image src="/wave.jpg" alt="Wave Money" width={30} height={30} style={{ marginBottom: '10px', width: '30px', height: '30px', objectFit: 'contain' }} />
-                            <Paragraph style={{ fontSize: '12px', color: isDarkMode ? '#ffffff' : '#000000', margin: '0', fontWeight: 500, transition: 'color 0.5s ease' }}>Wave Money</Paragraph>
-                        </Card>
-                        <Modal
-                            title="Wave Money Donation"
-                            visible={modalVisible.waveMoney}
-                            onCancel={() => setModalVisible({ ...modalVisible, waveMoney: false })}
-                            footer={null}
-                            centered
-                            width={300}
-                            style={{ background: isDarkMode ? '#2C2C2C' : '#f0f0f0', transition: 'background 0.5s ease' }}
-                            bodyStyle={{ background: isDarkMode ? '#2C2C2C' : '#f0f0f0', color: isDarkMode ? '#ffffff' : '#000000', transition: 'background 0.5s ease, color 0.5s ease' }}
-                        >
-                            <div style={{ textAlign: 'center' }}>
-                                <Image src={qrImages.waveMoney} alt="Wave Money QR Code" width={200} height={200} style={{ margin: '0 auto' }} />
-                                <Paragraph style={{ fontSize: '14px', color: isDarkMode ? '#ffffff' : '#000000', marginTop: '20px', transition: 'color 0.5s ease' }}>
-                                    Account Number: {accountNumbers.waveMoney}
-                                </Paragraph>
-                            </div>
-                        </Modal>
-                    </Col> */}
-                    {/* <Col xs={20} sm={12} md={5}>
-                        <Card
-                            style={cardStyle}
-                            onClick={() => setModalVisible({ ...modalVisible, uab: true })}
-                            onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-5px)')}
-                            onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
-                        >
-                            <Image src="/uab.png" alt="UAB" width={30} height={30} style={{ marginBottom: '10px', width: '30px', height: '30px', objectFit: 'contain' }} />
-                            <Paragraph style={{ fontSize: '12px', color: isDarkMode ? '#ffffff' : '#000000', margin: '0', fontWeight: 500, transition: 'color 0.5s ease' }}>UAB</Paragraph>
-                        </Card>
-                        <Modal
-                            title="UAB Donation"
-                            visible={modalVisible.uab}
-                            onCancel={() => setModalVisible({ ...modalVisible, uab: false })}
-                            footer={null}
-                            centered
-                            width={300}
-                            style={{ background: isDarkMode ? '#2C2C2C' : '#f0f0f0', transition: 'background 0.5s ease' }}
-                            bodyStyle={{ background: isDarkMode ? '#2C2C2C' : '#f0f0f0', color: isDarkMode ? '#ffffff' : '#000000', transition: 'background 0.5s ease, color 0.5s ease' }}
-                        >
-                            <div style={{ textAlign: 'center' }}>
-                                <Image src={qrImages.uab} alt="UAB QR Code" width={200} height={200} style={{ margin: '0 auto' }} />
-                                <Paragraph style={{ fontSize: '14px', color: isDarkMode ? '#ffffff' : '#000000', marginTop: '20px', transition: 'color 0.5s ease' }}>
-                                    Account Number: {accountNumbers.uab}
-                                </Paragraph>
-                            </div>
-                        </Modal>
-                    </Col> */}
                 </Row>
             </section>
 
-            {/* Total Donations and Donators Section */}
-            {/* <section style={{ marginBottom: '40px' }}>
-                <Row gutter={[20, 20]} justify="center" align="middle">
-                    <Col xs={20} sm={10} md={6}>
-                        <div style={statCircleStyle}>
-                            <Paragraph style={{ color: isDarkMode ? '#ffffff' : '#000000', fontSize: '14px', margin: '0', transition: 'color 0.5s ease' }}>Total Donations</Paragraph>
-                            <Title level={2} style={{ color: isDarkMode ? '#ffffff' : '#000000', fontSize: '24px', margin: '5px 0', transition: 'color 0.5s ease' }}>500,000</Title>
-                            <Paragraph style={{ color: isDarkMode ? '#cccccc' : '#666666', fontSize: '14px', margin: '0', transition: 'color 0.5s ease' }}>MMK</Paragraph>
-                        </div>
-                    </Col>
-                    <Col xs={20} sm={10} md={6}>
-                        <div style={statCircleStyle}>
-                            <Paragraph style={{ color: isDarkMode ? '#ffffff' : '#000000', fontSize: '14px', margin: '0', transition: 'color 0.5s ease' }}>Total Donations</Paragraph>
-                            <Title level={2} style={{ color: isDarkMode ? '#ffffff' : '#000000', fontSize: '24px', margin: '5px 0', transition: 'color 0.5s ease' }}>75,000</Title>
-                            <Paragraph style={{ color: isDarkMode ? '#cccccc' : '#666666', fontSize: '14px', margin: '0', transition: 'color 0.5s ease' }}>MMK</Paragraph>
-                        </div>
-                    </Col>
-                    <Col xs={20} sm={10} md={6}>
-                        <div style={statCircleStyle}>
-                            <Paragraph style={{ color: isDarkMode ? '#ffffff' : '#000000', fontSize: '14px', margin: '0', transition: 'color 0.5s ease' }}>Total Donators</Paragraph>
-                            <Title level={2} style={{ color: isDarkMode ? '#ffffff' : '#000000', fontSize: '24px', margin: '5px 0', transition: 'color 0.5s ease' }}>10</Title>
-                        </div>
-                    </Col>
-                </Row>
-            </section> */}
+            {/* Submit Transaction Key Button */}
+           
 
-            {/* Back to Home Button at Bottom */}
+            {/* Back to Home Button */}
             <Link href="/">
                 <Button
                     type="default"
@@ -340,7 +314,6 @@ const DonatePage: React.FC = () => {
                     Back to Home
                 </Button>
             </Link>
-
         </div>
     );
 };
