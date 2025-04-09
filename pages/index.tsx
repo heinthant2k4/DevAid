@@ -63,6 +63,10 @@ const Home: React.FC = () => {
     padding: '20px',
     fontFamily: 'var(--font-jetbrains-mono)',
     position: 'relative' as const, // Type assertion for 'relative'
+<<<<<<< HEAD
+=======
+    transition: 'background-color 0.5s ease, color 0.5s ease', // Added transition
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
   };
 
   const cardStyle = {
@@ -73,6 +77,10 @@ const Home: React.FC = () => {
     padding: '20px',
     textAlign: 'left' as const, // Type assertion for 'left'
     height: '100%',
+<<<<<<< HEAD
+=======
+    transition: 'background-color 0.5s ease, color 0.5s ease', // Added transition
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
   };
 
   const statCircleStyle = {
@@ -88,6 +96,10 @@ const Home: React.FC = () => {
     margin: '10px auto',
     fontSize: '16px',
     color: isDarkMode ? '#ffffff' : '#000000',
+<<<<<<< HEAD
+=======
+    transition: 'background-color 0.5s ease, color 0.5s ease', // Added transition
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
   };
 
   return (
@@ -103,6 +115,10 @@ const Home: React.FC = () => {
           top: '20px',
           left: '20px',
           margin: 0,
+<<<<<<< HEAD
+=======
+          transition: 'color 0.5s ease', // Added transition
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
         }}
       >
         DevAid
@@ -124,6 +140,10 @@ const Home: React.FC = () => {
           color: isDarkMode ? '#000000' : '#ffffff',
           border: 'none',
           boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+<<<<<<< HEAD
+=======
+          transition: 'background-color 0.5s ease, color 0.5s ease', // Added transition
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
         }}
       />
 
@@ -134,11 +154,19 @@ const Home: React.FC = () => {
           padding: '60px 20px 40px',
           marginBottom: '40px',
           borderBottom: isDarkMode ? '1px solid #333' : '1px solid #ddd',
+<<<<<<< HEAD
+=======
+          transition: 'background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease', // Added transition
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
         }}
       >
         <Title
           level={1}
+<<<<<<< HEAD
           style={{ color: isDarkMode ? '#ffffff' : '#000000', fontSize: '36px', fontWeight: 600, marginBottom: '15px' }}
+=======
+          style={{ color: isDarkMode ? '#ffffff' : '#000000', fontSize: '36px', fontWeight: 600, marginBottom: '15px', transition: 'color 0.5s ease' }} // Added transition
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
         >
           Myanmar Earthquake Relief Fund
         </Title>
@@ -149,10 +177,17 @@ const Home: React.FC = () => {
             margin: '0 auto 30px',
             color: isDarkMode ? '#ffffff' : '#000000',
             lineHeight: '1.6',
+<<<<<<< HEAD
           }}
         >
           Led by UIT, we provide emergency aid and recovery support for Myanmar’s earthquake victims, partnering with
           local and global organizations.
+=======
+            transition: 'color 0.5s ease', // Added transition
+          }}
+        >
+          DevAid, a passionate student organization from UIT, is dedicated to making a difference. We provide emergency aid and recovery support to Myanmar's earthquake victims, helping people rebuild their lives with hope and dignity.
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
         </Paragraph>
         <Space size="large" style={{ flexWrap: 'wrap', justifyContent: 'center', gap: '15px' }}>
           <Button
@@ -163,6 +198,10 @@ const Home: React.FC = () => {
               backgroundColor: isDarkMode ? '#000000' : '#ffffff',
               borderColor: isDarkMode ? '#000000' : '#000000',
               color: isDarkMode ? '#ffffff' : '#000000',
+<<<<<<< HEAD
+=======
+              transition: 'background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease', // Added transition
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
             }}
           >
             <Link href="/donate">Donate Now</Link>
@@ -174,6 +213,10 @@ const Home: React.FC = () => {
               borderColor: isDarkMode ? '#ffffff' : '#000000',
               color: isDarkMode ? '#ffffff' : '#000000',
               backgroundColor: isDarkMode ? '#000000' : '#ffffff',
+<<<<<<< HEAD
+=======
+              transition: 'background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease', // Added transition
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
             }}
           >
             <Link href="/view_donations">View Donations</Link>
@@ -188,11 +231,20 @@ const Home: React.FC = () => {
             <Card style={cardStyle}>
               <Title
                 level={3}
+<<<<<<< HEAD
                 style={{ color: isDarkMode ? '#ffffff' : '#000000', fontSize: '28px', marginBottom: '15px', fontWeight: 500 }}
               >
                 About the Earthquake
               </Title>
               <Paragraph style={{ fontSize: '14px', color: isDarkMode ? '#cccccc' : '#666666', lineHeight: '1.6' }}>
+=======
+                style={{ color: isDarkMode ? '#ffffff' : '#000000', fontSize: '28px', marginBottom: '15px', fontWeight: 500, transition: 'color 0.5s ease' }} // Added transition
+              >
+                About the Earthquake
+              </Title>
+              <Paragraph style={{ fontSize: '14px', color: isDarkMode ? '#cccccc' : '#666666', lineHeight: '1.6', transition: 'color 0.5s ease' }} // Added transition
+              >
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
                 On March 28, 2025, a 7.7-magnitude earthquake hit Myanmar near Mandalay, followed by a 6.4-magnitude
                 aftershock. It claimed over 3,000 lives, demolished infrastructure, and displaced thousands, worsening the
                 crisis.
@@ -203,12 +255,22 @@ const Home: React.FC = () => {
             <Card style={cardStyle}>
               <Title
                 level={3}
+<<<<<<< HEAD
                 style={{ color: isDarkMode ? '#ffffff' : '#000000', fontSize: '28px', marginBottom: '15px', fontWeight: 500 }}
               >
                 Our Relief Efforts
               </Title>
               <Paragraph style={{ fontSize: '14px', color: isDarkMode ? '#cccccc' : '#666666', lineHeight: '1.6' }}>
                 UIT’s team delivers food, medical camps, and shelters, collaborating with local NGOs and aiding mental
+=======
+                style={{ color: isDarkMode ? '#ffffff' : '#000000', fontSize: '28px', marginBottom: '15px', fontWeight: 500, transition: 'color 0.5s ease' }} // Added transition
+              >
+                Our Relief Efforts
+              </Title>
+              <Paragraph style={{ fontSize: '14px', color: isDarkMode ? '#cccccc' : '#666666', lineHeight: '1.6', transition: 'color 0.5s ease' }} // Added transition
+              >
+                DevAid’s team delivers food, medical camps, and shelters, collaborating with local NGOs and aiding mental
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
                 health and education for affected children.
               </Paragraph>
             </Card>
@@ -221,33 +283,58 @@ const Home: React.FC = () => {
         <Row gutter={[20, 20]} justify="center">
           <Col xs={24} sm={8}>
             <div style={statCircleStyle}>
+<<<<<<< HEAD
               <Typography.Text style={{ fontSize: '16px', color: isDarkMode ? '#cccccc' : '#666666' }}>
+=======
+              <Typography.Text style={{ fontSize: '16px', color: isDarkMode ? '#cccccc' : '#666666', transition: 'color 0.5s ease' }} // Added transition
+              >
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
                 Total Donations
               </Typography.Text>
               <Typography.Text style={{ fontSize: '24px', fontWeight: 600 }}>
                 {totalDonations.toLocaleString()}
               </Typography.Text>
+<<<<<<< HEAD
               <Typography.Text style={{ fontSize: '14px', color: isDarkMode ? '#cccccc' : '#666666' }}>
+=======
+              <Typography.Text style={{ fontSize: '14px', color: isDarkMode ? '#cccccc' : '#666666', transition: 'color 0.5s ease' }} // Added transition
+              >
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
                 MMK
               </Typography.Text>
             </div>
           </Col>
           <Col xs={24} sm={8}>
             <div style={statCircleStyle}>
+<<<<<<< HEAD
               <Typography.Text style={{ fontSize: '16px', color: isDarkMode ? '#cccccc' : '#666666' }}>
+=======
+              <Typography.Text style={{ fontSize: '16px', color: isDarkMode ? '#cccccc' : '#666666', transition: 'color 0.5s ease' }} // Added transition
+              >
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
                 Total Donated
               </Typography.Text>
               <Typography.Text style={{ fontSize: '24px', fontWeight: 600 }}>
                 {totalDonated.toLocaleString()}
               </Typography.Text>
+<<<<<<< HEAD
               <Typography.Text style={{ fontSize: '14px', color: isDarkMode ? '#cccccc' : '#666666' }}>
+=======
+              <Typography.Text style={{ fontSize: '14px', color: isDarkMode ? '#cccccc' : '#666666', transition: 'color 0.5s ease' }} // Added transition
+              >
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
                 MMK
               </Typography.Text>
             </div>
           </Col>
           <Col xs={24} sm={8}>
             <div style={statCircleStyle}>
+<<<<<<< HEAD
               <Typography.Text style={{ fontSize: '16px', color: isDarkMode ? '#cccccc' : '#666666' }}>
+=======
+              <Typography.Text style={{ fontSize: '16px', color: isDarkMode ? '#cccccc' : '#666666', transition: 'color 0.5s ease' }} // Added transition
+              >
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
                 Total Donors
               </Typography.Text>
               <Typography.Text style={{ fontSize: '24px', fontWeight: 600 }}>
@@ -266,11 +353,19 @@ const Home: React.FC = () => {
           backgroundColor: isDarkMode ? '#000000' : '#ffffff',
           color: isDarkMode ? '#ffffff' : '#000000',
           borderRadius: '10px',
+<<<<<<< HEAD
+=======
+          transition: 'background-color 0.5s ease, color 0.5s ease', // Added transition
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
         }}
       >
         <Title
           level={2}
+<<<<<<< HEAD
           style={{ color: isDarkMode ? '#ffffff' : '#000000', marginBottom: '15px', fontSize: '32px', fontWeight: 600 }}
+=======
+          style={{ color: isDarkMode ? '#ffffff' : '#000000', marginBottom: '15px', fontSize: '32px', fontWeight: 600, transition: 'color 0.5s ease' }} // Added transition
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
         >
           Support the Recovery
         </Title>
@@ -281,6 +376,10 @@ const Home: React.FC = () => {
             margin: '0 auto 30px',
             color: isDarkMode ? '#ffffff' : '#000000',
             lineHeight: '1.6',
+<<<<<<< HEAD
+=======
+            transition: 'color 0.5s ease', // Added transition
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
           }}
         >
           Your donation aids earthquake victims in Myanmar with essentials and recovery support.
@@ -294,6 +393,10 @@ const Home: React.FC = () => {
               backgroundColor: isDarkMode ? '#000000' : '#ffffff',
               borderColor: isDarkMode ? '#000000' : '#000000',
               color: isDarkMode ? '#ffffff' : '#000000',
+<<<<<<< HEAD
+=======
+              transition: 'background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease', // Added transition
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
             }}
           >
             <Link href="/donate">Donate Now</Link>
@@ -305,6 +408,10 @@ const Home: React.FC = () => {
               borderColor: isDarkMode ? '#ffffff' : '#000000',
               color: isDarkMode ? '#ffffff' : '#000000',
               backgroundColor: isDarkMode ? '#000000' : '#ffffff',
+<<<<<<< HEAD
+=======
+              transition: 'background-color 0.5s ease, color 0.5s ease, border-color 0.5s ease', // Added transition
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
             }}
           >
             <Link href="/view_donations">View Donations</Link>

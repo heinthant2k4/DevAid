@@ -5,6 +5,10 @@ import { Button, Table, Typography, Input } from 'antd';
 import Link from 'next/link';
 import { collection, query, limit, startAfter, getDocs, orderBy, where } from 'firebase/firestore';
 import { db } from '@/lib/firebaseClient'; // Adjust the import path to your Firebase config
+<<<<<<< HEAD
+=======
+import { ArrowLeftOutlined, BulbOutlined } from '@ant-design/icons';
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
 
 const { Title, Paragraph } = Typography;
 const { Search } = Input;
@@ -163,6 +167,7 @@ const Donations: React.FC = () => {
       </Title>
 
       {/* Theme Toggle Button */}
+<<<<<<< HEAD
       <Button
         onClick={toggleTheme}
         style={{
@@ -184,6 +189,27 @@ const Donations: React.FC = () => {
         💡
       </Button>
 
+=======
+
+      <Button
+        onClick={toggleTheme}
+        shape="circle"
+        icon={<BulbOutlined />}
+        style={{
+          position: 'fixed',
+          bottom: '20px', // Changed from top to bottom
+          right: '20px',  // Changed from right to left
+          zIndex: 1000,
+          width: '50px',
+          height: '50px',
+          backgroundColor: isDarkMode ? '#ffffff' : '#000000',
+          color: isDarkMode ? '#000000' : '#ffffff',
+          border: 'none',
+          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+          transition: 'background-color 0.5s ease, color 0.5s ease', // Added transition
+        }}
+      />
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
       {/* Header */}
       <Title
         level={1}
@@ -264,7 +290,11 @@ const Donations: React.FC = () => {
           transition: 'color 0.3s ease',
         }}
       >
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
       </div>
 
       {/* Back to Home Button */}

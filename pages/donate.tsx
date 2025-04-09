@@ -11,7 +11,11 @@ const { Title, Paragraph } = Typography;
 const DonatePage: React.FC = () => {
     const [modalVisible, setModalVisible] = useState({
         kbzPay: false,
+<<<<<<< HEAD
         ayaPay: false,
+=======
+        AYAPay: false,
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
         waveMoney: false,
         uab: false,
     });
@@ -19,14 +23,22 @@ const DonatePage: React.FC = () => {
 
     const accountNumbers = {
         kbzPay: '1234-5678-9012',
+<<<<<<< HEAD
         ayaPay: '9876-5432-1098',
+=======
+        AYAPay: '9876-5432-1098',
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
         waveMoney: '4567-8901-2345',
         uab: '3210-6548-7980',
     };
 
     const qrImages = {
         kbzPay: '/kpay-qr.png',
+<<<<<<< HEAD
         ayaPay: '/aya-qr.png',
+=======
+        AYAPay: '/aya-qr.png',
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
         waveMoney: '/wave-qr.png',
         uab: '/uab-qr.png',
     };
@@ -36,22 +48,38 @@ const DonatePage: React.FC = () => {
     };
 
     // Base styles that change based on theme with transitions
+<<<<<<< HEAD
     const containerStyle = {
+=======
+    const containerStyle: React.CSSProperties = {
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
         background: isDarkMode ? '#000000' : '#ffffff',
         minHeight: '100vh',
         padding: '20px 10px',
         fontFamily: '"Helvetica Neue", Arial, sans-serif',
         color: isDarkMode ? '#ffffff' : '#000000',
+<<<<<<< HEAD
         textAlign: 'center',
         transition: 'background 0.5s ease, color 0.5s ease', // Added transition
     };
 
     const cardStyle = {
+=======
+        textAlign: 'center' as const,
+        transition: 'background 0.5s ease, color 0.5s ease', // Added transition
+    };
+
+    const cardStyle: React.CSSProperties = {
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
         border: 'none',
         boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
         borderRadius: '12px',
         padding: '10px',
+<<<<<<< HEAD
         textAlign: 'center',
+=======
+        textAlign: 'center' as const,
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
         width: '120px',
         height: '120px',
         transition: 'transform 0.3s ease, background 0.5s ease', // Updated transition
@@ -63,7 +91,11 @@ const DonatePage: React.FC = () => {
         cursor: 'pointer',
     };
 
+<<<<<<< HEAD
     const statCircleStyle = {
+=======
+    const statCircleStyle: React.CSSProperties = {
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
         background: isDarkMode ? 'rgba(44, 44, 44, 0.8)' : 'rgba(200, 200, 200, 0.8)',
         borderRadius: '50%',
         width: '150px',
@@ -104,7 +136,11 @@ const DonatePage: React.FC = () => {
                 style={{
                     position: 'fixed',
                     bottom: '20px', // Changed from top to bottom
+<<<<<<< HEAD
                     left: '20px',  // Changed from right to left
+=======
+                    right: '20px',  // Changed from right to left
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
                     zIndex: 1000,
                     width: '50px',
                     height: '50px',
@@ -194,10 +230,17 @@ const DonatePage: React.FC = () => {
                             bodyStyle={{ background: isDarkMode ? '#2C2C2C' : '#f0f0f0', color: isDarkMode ? '#ffffff' : '#000000', transition: 'background 0.5s ease, color 0.5s ease' }}
                         >
                             <div style={{ textAlign: 'center' }}>
+<<<<<<< HEAD
                                 <Image src="/images/wkhs_kbz.jpg" alt="KBZ Pay QR Code" width={200} height={200} style={{ margin: '0 auto' }} />
                                 <Paragraph style={{ fontSize: '14px', color: isDarkMode ? '#ffffff' : '#000000', marginTop: '20px', transition: 'color 0.5s ease' , padding: '20px' }}>
                                 09765127445 <br></br>
                                 Htet Yadanar Myo
+=======
+                                <Image src="/images/wkhs_kbz.jpg" alt="KBZ Pay QR Code" width={200} height={300} style={{ margin: '0 auto' }} />
+                                <Paragraph style={{ fontSize: '14px', color: isDarkMode ? '#ffffff' : '#000000', marginTop: '20px', transition: 'color 0.5s ease', padding: '20px' }}>
+                                    09765127445 <br />
+                                    Htet Yadanar Myo
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
                                 </Paragraph>
                             </div>
                         </Modal>
@@ -205,17 +248,30 @@ const DonatePage: React.FC = () => {
                     <Col xs={20} sm={12} md={5}>
                         <Card
                             style={cardStyle}
+<<<<<<< HEAD
                             onClick={() => setModalVisible({ ...modalVisible, ayaPay: true })}
+=======
+                            onClick={() => setModalVisible({ ...modalVisible, AYAPay: true })}
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
                             onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-5px)')}
                             onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
                         >
                             <Image src="/aya.png" alt="AYA Pay" width={60} height={60} style={{ marginBottom: '10px', width: '60px', height: '60px', objectFit: 'contain' }} />
+<<<<<<< HEAD
                             <Paragraph style={{ fontSize: '12px', color: isDarkMode ? '#ffffff' : '#000000', margin: '0', fontWeight: 500, transition: 'color 0.5s ease' }}>aya Pay</Paragraph>
                         </Card>
                         <Modal
                             title="AYA Pay Donation"
                             visible={modalVisible.ayaPay}
                             onCancel={() => setModalVisible({ ...modalVisible, ayaPay: false })}
+=======
+                            <Paragraph style={{ fontSize: '12px', color: isDarkMode ? '#ffffff' : '#000000', margin: '0', fontWeight: 500, transition: 'color 0.5s ease' }}>AYA Pay</Paragraph>
+                        </Card>
+                        <Modal
+                            title="AYA Pay Donation"
+                            visible={modalVisible.AYAPay}
+                            onCancel={() => setModalVisible({ ...modalVisible, AYAPay: false })}
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
                             footer={null}
                             centered
                             width={300}
@@ -223,10 +279,17 @@ const DonatePage: React.FC = () => {
                             bodyStyle={{ background: isDarkMode ? '#2C2C2C' : '#f0f0f0', color: isDarkMode ? '#ffffff' : '#000000', transition: 'background 0.5s ease, color 0.5s ease' }}
                         >
                             <div style={{ textAlign: 'center' }}>
+<<<<<<< HEAD
                                 <Image src="/images/wkhs_aya.jpg" alt="AYA Pay QR Code" width={200} height={200} style={{ margin: '0 auto' }} />
                                 <Paragraph style={{ fontSize: '14px', color: isDarkMode ? '#ffffff' : '#000000', marginTop: '20px', transition: 'color 0.5s ease'  , padding: '20px'}}>
                                 09765127445 <br></br>
                                 Htet Yadanar Myo
+=======
+                                <Image src="/images/wkhs_aya.jpg" alt="AYA Pay QR Code" width={200} height={300} style={{ margin: '0 auto' }} />
+                                <Paragraph style={{ fontSize: '14px', color: isDarkMode ? '#ffffff' : '#000000', marginTop: '20px', transition: 'color 0.5s ease', padding: '20px' }}>
+                                    09765127445 <br />
+                                    Htet Yadanar Myo
+>>>>>>> f8d6718d6eaf4d3b5fe86d7e66701ea95e490560
                                 </Paragraph>
                             </div>
                         </Modal>
