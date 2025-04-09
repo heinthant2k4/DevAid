@@ -47,3 +47,67 @@ a {
     color-scheme: dark;
   }
 }
+
+/* styles/global.css or within <style jsx global> */
+.dark-row-even {
+  background-color: #2d2d2d !important;
+}
+
+.light-row-even {
+  background-color: #fafafa !important;
+}
+
+.ant-table-thead > tr > th {
+  font-weight: 600 !important;
+}
+
+.ant-table-row:hover {
+  background-color: #e6f7ff !important;
+}
+
+.dark-row-even:hover,
+.light-row-even:hover {
+  background-color: #e6f7ff !important;
+}
+
+.ant-table-tbody > tr > td {
+  transition: background-color 0.2s ease;
+}
+
+.ant-statistic-title {
+  color: inherit !important;
+}
+
+/* styles/global.css or within <style jsx global> */
+@media (max-width: 768px) {
+  .ant-card {
+    max-width: 300px !important;
+    margin: 0 auto !important;
+  }
+
+  .ant-btn {
+    font-size: 14px !important;
+    padding: 6px 12px !important;
+  }
+
+  h1.ant-typography {
+    font-size: 28px !important;
+  }
+
+  h2.ant-typography {
+    font-size: 20px !important;
+  }
+
+  h3.ant-typography {
+    font-size: 18px !important;
+  }
+
+  h4.ant-typography {
+    font-size: 16px !important;
+  }
+
+  .ant-row {
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+}
