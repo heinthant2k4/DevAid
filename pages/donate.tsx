@@ -319,63 +319,6 @@ const DonatePage: React.FC = () => {
         </Row>
       </section>
 
-      {/* Submit Transaction Key Button */}
-      <section style={{ marginBottom: '40px' }}>
-        <Button
-          type="primary"
-          icon={<KeyOutlined />}
-          onClick={() => setModalVisible({ ...modalVisible, transactionKey: true })}
-          style={{
-            ...buttonStyle,
-            backgroundColor: '#1890ff',
-            borderColor: '#1890ff',
-            color: '#ffffff',
-          }}
-          onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
-            e.currentTarget.style.backgroundColor = '#40a9ff';
-            e.currentTarget.style.borderColor = '#40a9ff';
-          }}
-          onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
-            e.currentTarget.style.backgroundColor = '#1890ff';
-            e.currentTarget.style.borderColor = '#1890ff';
-          }}
-        >
-          Submit Transaction Key
-        </Button> 
-        <Modal
-          title="Verify Transaction Key"
-          open={modalVisible.transactionKey}
-          onCancel={() => {
-            setModalVisible({ ...modalVisible, transactionKey: false });
-            form.resetFields();
-          }}
-          footer={null}
-          centered
-          width={400}
-          style={{ backgroundColor: '#ffffff' }}
-          bodyStyle={{ backgroundColor: '#ffffff', color: '#1a1a1a' }}
-        >
-          <Form form={form} onFinish={handleKeySubmit} layout="vertical">
-            <Form.Item
-              name="transactionKey"
-              label="Transaction Key"
-              rules={[{ required: true, message: 'Please enter the transaction key' }]}
-            >
-              <Input placeholder="Enter your transaction key" />
-            </Form.Item>
-            <Form.Item>
-              <Button
-                type="primary"
-                htmlType="submit"
-                loading={submitting}
-                style={{ ...buttonStyle, width: '100%' }}
-              >
-                Verify Key
-              </Button>
-            </Form.Item>
-          </Form>
-        </Modal>
-      </section>
 
       {/* Back to Home Button */}
       <Link href="/">
