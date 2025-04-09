@@ -180,7 +180,7 @@ const DonatePage: React.FC = () => {
                             onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-5px)')}
                             onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
                         >
-                            <Image src="/kpay.jpg" alt="KBZ Pay" width={30} height={30} style={{ marginBottom: '10px', width: '30px', height: '30px', objectFit: 'contain' }} />
+                            <Image src="/kpay.jpg" alt="KBZ Pay" width={60} height={60} style={{ marginBottom: '10px', width: '60px', height: '60px', objectFit: 'contain' }} />
                             <Paragraph style={{ fontSize: '12px', color: isDarkMode ? '#ffffff' : '#000000', margin: '0', fontWeight: 500, transition: 'color 0.5s ease' }}>KBZ Pay</Paragraph>
                         </Card>
                         <Modal
@@ -194,9 +194,10 @@ const DonatePage: React.FC = () => {
                             bodyStyle={{ background: isDarkMode ? '#2C2C2C' : '#f0f0f0', color: isDarkMode ? '#ffffff' : '#000000', transition: 'background 0.5s ease, color 0.5s ease' }}
                         >
                             <div style={{ textAlign: 'center' }}>
-                                <Image src={qrImages.kbzPay} alt="KBZ Pay QR Code" width={200} height={200} style={{ margin: '0 auto' }} />
-                                <Paragraph style={{ fontSize: '14px', color: isDarkMode ? '#ffffff' : '#000000', marginTop: '20px', transition: 'color 0.5s ease' }}>
-                                    Account Number: {accountNumbers.kbzPay}
+                                <Image src="/images/wkhs_kbz.jpg" alt="KBZ Pay QR Code" width={200} height={200} style={{ margin: '0 auto' }} />
+                                <Paragraph style={{ fontSize: '14px', color: isDarkMode ? '#ffffff' : '#000000', marginTop: '20px', transition: 'color 0.5s ease' , padding: '20px' }}>
+                                09765127445 <br></br>
+                                Htet Yadanar Myo
                                 </Paragraph>
                             </div>
                         </Modal>
@@ -208,7 +209,7 @@ const DonatePage: React.FC = () => {
                             onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-5px)')}
                             onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
                         >
-                            <Image src="/aya.png" alt="AYA Pay" width={30} height={30} style={{ marginBottom: '10px', width: '30px', height: '30px', objectFit: 'contain' }} />
+                            <Image src="/aya.png" alt="AYA Pay" width={60} height={60} style={{ marginBottom: '10px', width: '60px', height: '60px', objectFit: 'contain' }} />
                             <Paragraph style={{ fontSize: '12px', color: isDarkMode ? '#ffffff' : '#000000', margin: '0', fontWeight: 500, transition: 'color 0.5s ease' }}>aya Pay</Paragraph>
                         </Card>
                         <Modal
@@ -222,14 +223,15 @@ const DonatePage: React.FC = () => {
                             bodyStyle={{ background: isDarkMode ? '#2C2C2C' : '#f0f0f0', color: isDarkMode ? '#ffffff' : '#000000', transition: 'background 0.5s ease, color 0.5s ease' }}
                         >
                             <div style={{ textAlign: 'center' }}>
-                                <Image src={qrImages.ayaPay} alt="AYA Pay QR Code" width={200} height={200} style={{ margin: '0 auto' }} />
-                                <Paragraph style={{ fontSize: '14px', color: isDarkMode ? '#ffffff' : '#000000', marginTop: '20px', transition: 'color 0.5s ease' }}>
-                                    Account Number: {accountNumbers.ayaPay}
+                                <Image src="/images/wkhs_aya.jpg" alt="AYA Pay QR Code" width={200} height={200} style={{ margin: '0 auto' }} />
+                                <Paragraph style={{ fontSize: '14px', color: isDarkMode ? '#ffffff' : '#000000', marginTop: '20px', transition: 'color 0.5s ease'  , padding: '20px'}}>
+                                09765127445 <br></br>
+                                Htet Yadanar Myo
                                 </Paragraph>
                             </div>
                         </Modal>
                     </Col>
-                    <Col xs={20} sm={12} md={5}>
+                    {/* <Col xs={20} sm={12} md={5}>
                         <Card
                             style={cardStyle}
                             onClick={() => setModalVisible({ ...modalVisible, waveMoney: true })}
@@ -256,8 +258,8 @@ const DonatePage: React.FC = () => {
                                 </Paragraph>
                             </div>
                         </Modal>
-                    </Col>
-                    <Col xs={20} sm={12} md={5}>
+                    </Col> */}
+                    {/* <Col xs={20} sm={12} md={5}>
                         <Card
                             style={cardStyle}
                             onClick={() => setModalVisible({ ...modalVisible, uab: true })}
@@ -284,12 +286,12 @@ const DonatePage: React.FC = () => {
                                 </Paragraph>
                             </div>
                         </Modal>
-                    </Col>
+                    </Col> */}
                 </Row>
             </section>
 
             {/* Total Donations and Donators Section */}
-            <section style={{ marginBottom: '40px' }}>
+            {/* <section style={{ marginBottom: '40px' }}>
                 <Row gutter={[20, 20]} justify="center" align="middle">
                     <Col xs={20} sm={10} md={6}>
                         <div style={statCircleStyle}>
@@ -312,7 +314,7 @@ const DonatePage: React.FC = () => {
                         </div>
                     </Col>
                 </Row>
-            </section>
+            </section> */}
 
             {/* Back to Home Button at Bottom */}
             <section style={{ padding: '20px 0' }}>
