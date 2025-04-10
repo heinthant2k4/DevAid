@@ -1,17 +1,20 @@
 import React from "react";
-import { Layout, Menu } from "antd";
 import {
-  DashboardOutlined,
-  TableOutlined,
-  LogoutOutlined,
-} from "@ant-design/icons";
+  Box,
+  VStack,
+  Text,
+  Icon,
+  Link as ChakraLink,
+  useDisclosure,
+} from "@chakra-ui/react";
+import { HamburgerIcon, CloseIcon} from "@chakra-ui/icons";
+import { FaDashcube, FaTable } from "react-icons/fa";
 import Link from "next/link";
 import { useRouter } from "next/router";
 
-const { Sider, Content } = Layout;
-
 const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const router = useRouter();
+  const { isOpen, onToggle } = useDisclosure();
 
   // Map routes to menu keys
   const menuKeyMap: { [key: string]: string } = {
@@ -23,42 +26,74 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const selectedKey = menuKeyMap[router.pathname] || "";
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
-      <Sider collapsible>
-        <div
-          className="logo"
-          style={{
-            color: "white",
-            padding: "16px",
-            textAlign: "center",
-            fontWeight: "bold",
-            fontSize: "20px",
-          }}
-        >
-          Admin Panel
-        </div>
-        <Menu
-          theme="dark"
-          mode="inline"
-          selectedKeys={[selectedKey]} // Dynamically set the selected menu item
-        >
-          <Menu.Item key="dashboard" icon={<DashboardOutlined />}>
-            <Link href="/dashboard">Dashboard</Link>
-          </Menu.Item>
-          <Menu.Item key="donations" icon={<TableOutlined />}>
-            <Link href="/donations">Donations</Link>
-          </Menu.Item>
-          <Menu.Item key="logout" icon={<LogoutOutlined />}>
-            Logout
-          </Menu.Item>
-        </Menu>
-      </Sider>
-      <Layout>
-        <Content style={{ margin: "16px", padding: "16px", background: "#fff" }}>
-          {children}
-        </Content>
-      </Layout>
-    </Layout>
+    <Box minH="100vh" display="flex">
+      {/* Sidebar */}
+      <Box
+        as="nav"
+        w={isOpen ? "200px" : "60px"}
+        bg="gray.800"
+        color="white"
+        transition="width 0.3s"
+        position="fixed"
+        h="100vh"
+        zIndex={10}
+      >
+        <VStack spacing={0} align="stretch" h="full">
+          {/* Logo/Title */}
+          <Box p={4} textAlign="center">
+            <Text fontSize="xl" fontWeight="bold" display={isOpen ? "block" : "none"}>
+              Admin Panel
+            </Text>
+            <Icon
+              as={isOpen ? CloseIcon : HamburgerIcon}
+              boxSize={6}
+              onClick={onToggle}
+              cursor="pointer"
+              display={{ base: "block", md: "block" }}
+            />
+          </Box>
+
+          {/* Menu Items */}
+          <VStack spacing={2} align="stretch" mt={4}>
+            <ChakraLink
+              as={Link}
+              href="/dashboard"
+              display="flex"
+              alignItems="center"
+              p={3}
+              bg={selectedKey === "dashboard" ? "gray.700" : "transparent"}
+              _hover={{ bg: "gray.700" }}
+            >
+              <Icon as={FaDashcube} boxSize={5} mr={isOpen ? 3 : 0} />
+              <Text display={isOpen ? "block" : "none"}>Dashboard</Text>
+            </ChakraLink>
+            <ChakraLink
+              as={Link}
+              href="/donations"
+              display="flex"
+              alignItems="center"
+              p={3}
+              bg={selectedKey === "donations" ? "gray.700" : "transparent"}
+              _hover={{ bg: "gray.700" }}
+            >
+              <Icon as={FaTable} boxSize={5} mr={isOpen ? 3 : 0} />
+              <Text display={isOpen ? "block" : "none"}>Donations</Text>
+            </ChakraLink>
+          </VStack>
+        </VStack>
+      </Box>
+
+      {/* Main Content */}
+      <Box
+        flex={1}
+        ml={isOpen ? "200px" : "60px"}
+        transition="margin-left 0.3s"
+        p={4}
+        bg="white"
+      >
+        {children}
+      </Box>
+    </Box>
   );
 };
 

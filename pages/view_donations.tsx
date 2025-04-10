@@ -1,14 +1,32 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Button, Table, Typography, message, Skeleton, Card, Empty } from 'antd';
+import {
+  Box,
+  Button,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  Text,
+  Heading,
+  VStack,
+  HStack,
+  Skeleton,
+  Card,
+  CardBody,
+  Icon,
+  Link as ChakraLink,
+  Spinner,
+  Center,
+} from '@chakra-ui/react';
 import Link from 'next/link';
 import { collection, query, limit, startAfter, getDocs, orderBy, startAt, DocumentSnapshot } from 'firebase/firestore';
 import { db } from '@/lib/firebaseClient';
-import { HomeOutlined, FileTextOutlined } from '@ant-design/icons';
+import { ArrowUpIcon, DownloadIcon, ArrowLeftIcon } from '@chakra-ui/icons';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
-
-const { Title } = Typography;
 
 interface Donation {
   id: string;
@@ -45,7 +63,6 @@ const Donations: React.FC = () => {
     } catch (error) {
       console.error('Error fetching total donations:', error);
       setTotalError('Failed to fetch total donations. Please try again.');
-      message.error('Failed to fetch total donations.');
     } finally {
       setTotalLoading(false);
     }
@@ -95,7 +112,6 @@ const Donations: React.FC = () => {
     } catch (error) {
       console.error('Error fetching donations:', error);
       setError('Failed to fetch donations. Please try again.');
-      message.error('Failed to fetch donations.');
     } finally {
       setLoading(false);
     }
@@ -117,319 +133,242 @@ const Donations: React.FC = () => {
       link.href = URL.createObjectURL(blob);
       link.download = `${record.name}_certificate.pdf`;
       link.click();
-      message.success('Certificate generated successfully!');
     } catch (error) {
       console.error('Certificate error:', error);
-      message.error('Failed to generate certificate. Please try again.');
     } finally {
       setCertificateLoading(null);
     }
   };
-
-  // Function to render the View Certificate button
-  const renderCertificateButton = (record: Donation) => (
-    <Button
-      type="default"
-      icon={<FileTextOutlined />}
-      onClick={() => generateCertificate(record)}
-      loading={certificateLoading === record.id}
-      style={{
-        backgroundColor: '#e6f7ff',
-        color: '#1890ff',
-        border: 'none',
-        borderRadius: '4px',
-      }}
-    >
-      View Certificate
-    </Button>
-  );
 
   useEffect(() => {
     fetchTotalDonations();
     fetchDonations();
   }, []);
 
-  const columns = [
-    {
-      title: 'Donor Name',
-      dataIndex: 'name',
-      key: 'name',
-      onCell: () => ({
-        style: { color: '#000000', padding: '12px' },
-      }),
-      onHeaderCell: () => ({
-        style: {
-          color: '#000000',
-          backgroundColor: '#e6f7ff',
-          fontWeight: 600,
-        },
-      }),
-    },
-    {
-      title: 'Amount (MMK)',
-      dataIndex: 'amount',
-      key: 'amount',
-      sorter: (a: Donation, b: Donation) => a.amount - b.amount,
-      render: (amount: number) => (
-        <span style={{ fontWeight: 500, color: '#389e0d' }}>
-          {amount.toLocaleString()} MMK
-        </span>
-      ),
-      onCell: () => ({
-        style: { color: '#000000', padding: '12px' },
-      }),
-      onHeaderCell: () => ({
-        style: {
-          color: '#000000',
-          backgroundColor: '#e6f7ff',
-          fontWeight: 600,
-        },
-      }),
-    },
-    {
-      title: 'Certificate',
-      key: 'certificate',
-      render: (_: any, record: Donation) => renderCertificateButton(record),
-      onCell: () => ({
-        style: { padding: '12px' },
-      }),
-      onHeaderCell: () => ({
-        style: {
-          color: '#000000',
-          backgroundColor: '#e6f7ff',
-          fontWeight: 600,
-        },
-      }),
-    },
-  ];
-
-  const containerStyle: React.CSSProperties = {
-    backgroundColor: '#ffffff',
-    color: '#000000',
-    minHeight: '100vh',
-    padding: '24px',
-    fontFamily: 'var(--font-jetbrains-mono), monospace',
-  };
-
-  const buttonStyle: React.CSSProperties = {
-    borderRadius: '8px',
-    fontWeight: 500,
-    padding: '8px 24px',
-    transition: 'background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease',
-  };
-
   return (
-    <div style={containerStyle}>
+    <Box
+      bg="white"
+      color="black"
+      minH="100vh"
+      p={6}
+      fontFamily="var(--font-jetbrains-mono), monospace"
+      position="relative"
+    >
       {/* Dev Aid Title */}
-      <Title
-        level={2}
-        style={{
-          color: '#1890ff',
-          fontSize: '28px',
-          fontWeight: 700,
-          position: 'absolute',
-          top: '24px',
-          left: '24px',
-          margin: 0,
-        }}
+      <Heading
+        as="h2"
+        size="lg"
+        position="absolute"
+        top={6}
+        left={6}
+        color="blue.500"
+        fontWeight="bold"
+        zIndex={1000}
       >
-        Dev Aid
-      </Title>
+        Dev<span style={{ color: '#ff4d4f' }}>Aid</span>
+      </Heading>
 
       {/* Header */}
-      <Title
-        level={1}
-        style={{
-          color: '#1a1a1a',
-          fontSize: '36px',
-          fontWeight: 700,
-          marginBottom: '16px',
-          textAlign: 'center',
-        }}
-      >
+      <Heading as="h1" size="2xl" textAlign="center" mb={4} color="gray.800" fontWeight="bold">
         Donations
-      </Title>
+      </Heading>
+
+      {/* Scroll to Top Button */}
+      <Button
+        position="fixed"
+        bottom={10}
+        right={10}
+        zIndex={1000}
+        bg="white"
+        border="1px"
+        borderColor="blue.500"
+        rounded="full"
+        size="lg"
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        _hover={{ bg: 'blue.50' }}
+      >
+        <Icon as={ArrowUpIcon} color="blue.500" />
+      </Button>
 
       {/* Total Donations Card */}
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
+      <Center mb={6}>
         {totalLoading ? (
-          <Skeleton active paragraph={{ rows: 2 }} style={{ width: '100%', maxWidth: 400 }} />
+          <Skeleton height="100px" width="400px" />
         ) : totalError ? (
-          <div style={{ textAlign: 'center', maxWidth: 400, width: '100%' }}>
-            <Typography.Paragraph style={{ color: '#ff4d4f', fontSize: '16px' }}>
+          <VStack maxW="400px" w="full" textAlign="center">
+            <Text color="red.500" fontSize="lg">
               {totalError}
-            </Typography.Paragraph>
+            </Text>
             <Button
-              type="primary"
+              colorScheme="blue"
               onClick={fetchTotalDonations}
-              style={{ ...buttonStyle, backgroundColor: '#1890ff', borderColor: '#1890ff', color: '#ffffff' }}
-              onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
-                e.currentTarget.style.backgroundColor = '#40a9ff';
-                e.currentTarget.style.borderColor = '#40a9ff';
-              }}
-              onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
-                e.currentTarget.style.backgroundColor = '#1890ff';
-                e.currentTarget.style.borderColor = '#1890ff';
-              }}
+              rounded="md"
+              fontWeight="medium"
+              px={6}
+              py={4}
             >
               Retry
             </Button>
-          </div>
+          </VStack>
         ) : (
           <Card
-            style={{
-              width: '100%',
-              maxWidth: 400,
-              textAlign: 'center',
-              borderRadius: '16px',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-              border: '1px solid #e6f7ff',
-            }}
-            bodyStyle={{
-              padding: '16px 24px',
-            }}
+            maxW="400px"
+            w="full"
+            textAlign="center"
+            rounded="xl"
+            boxShadow="md"
+            border="1px"
+            borderColor="blue.50"
           >
-            <Title level={4} style={{ margin: 0, color: '#666666' }}>
-              Thank you for your generous support!
-            </Title>
-            <Title level={3} style={{ margin: '8px 0 0 0', color: '#389e0d' }}>
-              Total Donations: {totalDonations.toLocaleString()} MMK
-            </Title>
+            <CardBody p={4}>
+              <Heading as="h4" size="md" color="gray.600" mb={2}>
+                Thank you for your generous support!
+              </Heading>
+              <Heading as="h3" size="lg" color="green.500">
+                Total Donations: {totalDonations.toLocaleString()} MMK
+              </Heading>
+            </CardBody>
           </Card>
         )}
-      </div>
+      </Center>
 
       {/* Table */}
-      <div style={{ overflowX: 'auto' }}>
+      <Box overflowX="auto">
         {loading && !donationsData.length ? (
-          <Skeleton active paragraph={{ rows: 5 }} style={{ padding: '16px' }} />
+          <Skeleton height="200px" />
         ) : error ? (
-          <div style={{ textAlign: 'center', marginBottom: 24 }}>
-            <Typography.Paragraph style={{ color: '#ff4d4f', fontSize: '16px' }}>
+          <VStack textAlign="center" mb={6}>
+            <Text color="red.500" fontSize="lg">
               {error}
-            </Typography.Paragraph>
+            </Text>
             <Button
-              type="primary"
+              colorScheme="blue"
               onClick={() => fetchDonations()}
-              style={{ ...buttonStyle, backgroundColor: '#1890ff', borderColor: '#1890ff', color: '#ffffff' }}
-              onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
-                e.currentTarget.style.backgroundColor = '#40a9ff';
-                e.currentTarget.style.borderColor = '#40a9ff';
-              }}
-              onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
-                e.currentTarget.style.backgroundColor = '#1890ff';
-                e.currentTarget.style.borderColor = '#1890ff';
-              }}
+              rounded="md"
+              fontWeight="medium"
+              px={6}
+              py={4}
             >
               Retry
             </Button>
-          </div>
+          </VStack>
         ) : donationsData.length === 0 ? (
-          <Empty description="No donations found." />
+          <Center>
+            <Text fontSize="lg" color="gray.500">
+              No donations found.
+            </Text>
+          </Center>
         ) : (
-          <Table
-            columns={columns}
-            dataSource={donationsData}
-            rowKey="id"
-            pagination={false}
-            loading={loading}
-            style={{
-              backgroundColor: '#ffffff',
-              borderRadius: '8px',
-              overflow: 'hidden',
-            }}
-            rowClassName={(record, index) => (index % 2 === 0 ? 'light-row-even' : '')}
-            onRow={(record, index) => ({
-              onMouseEnter: (event: React.MouseEvent<HTMLTableRowElement>) => {
-                const row = event.currentTarget;
-                row.style.backgroundColor = '#e6f7ff';
-              },
-              onMouseLeave: (event: React.MouseEvent<HTMLTableRowElement>) => {
-                const row = event.currentTarget;
-                row.style.backgroundColor = index! % 2 === 0 ? '#fafafa' : '#ffffff';
-              },
-              style: {
-                transition: 'background-color 0.2s ease',
-              },
-            })}
-          />
+          <Table variant="simple" bg="white" rounded="md" overflow="hidden">
+            <Thead bg="blue.50">
+              <Tr>
+                <Th color="black" fontWeight="semibold" py={3}>
+                  Donor Name
+                </Th>
+                <Th color="black" fontWeight="semibold" py={3}>
+                  Amount (MMK)
+                </Th>
+                <Th color="black" fontWeight="semibold" py={3}>
+                  Certificate
+                </Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {donationsData.map((record, index) => (
+                <Tr
+                  key={record.id}
+                  bg={index % 2 === 0 ? 'gray.50' : 'white'}
+                  _hover={{ bg: 'blue.50', transition: 'background-color 0.2s ease' }}
+                >
+                  <Td py={3} color="black">
+                    {record.name}
+                  </Td>
+                  <Td py={3}>
+                    <Text fontWeight="medium" color="green.500">
+                      {record.amount.toLocaleString()} MMK
+                    </Text>
+                  </Td>
+                  <Td py={3}>
+                    <Button
+                      size="sm"
+                      leftIcon={<DownloadIcon />}
+                      bg="blue.50"
+                      color="blue.500"
+                      onClick={() => generateCertificate(record)}
+                      isLoading={certificateLoading === record.id}
+                      rounded="md"
+                      _hover={{ bg: 'blue.100' }}
+                    >
+                      View Certificate
+                    </Button>
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
         )}
-      </div>
+      </Box>
 
       {/* Pagination Buttons */}
       {donationsData.length > 0 && !error && (
-        <div style={{ textAlign: 'center', marginTop: 24 }}>
-          {hasPrevious && (
-            <Button
-              onClick={() => fetchDonations(false, true)}
-              loading={loading}
-              style={{
-                ...buttonStyle,
-                marginRight: 8,
-                backgroundColor: '#e6f7ff',
-                borderColor: '#1890ff',
-                color: '#1890ff',
-              }}
-              onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
-                e.currentTarget.style.backgroundColor = '#bae7ff';
-              }}
-              onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
-                e.currentTarget.style.backgroundColor = '#e6f7ff';
-              }}
-            >
-              Load Previous
-            </Button>
-          )}
-          {hasMore && (
-            <Button
-              onClick={() => fetchDonations(true)}
-              loading={loading}
-              style={{
-                ...buttonStyle,
-                backgroundColor: '#e6f7ff',
-                borderColor: '#1890ff',
-                color: '#1890ff',
-              }}
-              onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
-                e.currentTarget.style.backgroundColor = '#bae7ff';
-              }}
-              onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
-                e.currentTarget.style.backgroundColor = '#e6f7ff';
-              }}
-            >
-              Load More
-            </Button>
-          )}
-        </div>
+        <Center mt={6}>
+          <HStack spacing={4}>
+            {hasPrevious && (
+              <Button
+                onClick={() => fetchDonations(false, true)}
+                isLoading={loading}
+                bg="blue.50"
+                color="blue.500"
+                rounded="md"
+                fontWeight="medium"
+                px={6}
+                py={4}
+                _hover={{ bg: 'blue.100' }}
+              >
+                Load Previous
+              </Button>
+            )}
+            {hasMore && (
+              <Button
+                onClick={() => fetchDonations(true)}
+                isLoading={loading}
+                bg="blue.50"
+                color="blue.500"
+                rounded="md"
+                fontWeight="medium"
+                px={6}
+                py={4}
+                _hover={{ bg: 'blue.100' }}
+              >
+                Load More
+              </Button>
+            )}
+          </HStack>
+        </Center>
       )}
 
       {/* Back to Home Button */}
-      <Link href="/">
-        <Button
-          type="default"
-          icon={<HomeOutlined />}
-          style={{
-            ...buttonStyle,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            margin: '40px auto',
-            backgroundColor: '#ffffff',
-            color: '#000000',
-            border: '1px solid #000000',
-          }}
-          onMouseEnter={(e: React.MouseEvent<HTMLButtonElement>) => {
-            e.currentTarget.style.backgroundColor = '#e6f7ff';
-          }}
-          onMouseLeave={(e: React.MouseEvent<HTMLButtonElement>) => {
-            e.currentTarget.style.backgroundColor = '#ffffff';
-          }}
-        >
-          Back to Home
-        </Button>
-      </Link>
-    </div>
+      <Center mt={10}>
+        <Link href="/" passHref>
+          <ChakraLink>
+            <Button
+              leftIcon={<ArrowLeftIcon />}
+              bg="white"
+              color="black"
+              border="1px"
+              borderColor="black"
+              rounded="md"
+              fontWeight="medium"
+              px={6}
+              py={4}
+              _hover={{ bg: 'blue.50' }}
+            >
+              Back to Home
+            </Button>
+          </ChakraLink>
+        </Link>
+      </Center>
+    </Box>
   );
 };
 

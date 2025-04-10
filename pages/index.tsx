@@ -1,13 +1,20 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Button, Card, Space, Typography, Row, Col, Skeleton, message } from 'antd';
-import { DollarOutlined, EyeOutlined } from '@ant-design/icons';
+import {
+  Box,
+  Flex,
+  Heading,
+  Text,
+  Button,
+  Skeleton,
+  useToast,
+  IconButton,
+} from '@chakra-ui/react';
+import { FaDollarSign, FaEye, FaArrowUp } from 'react-icons/fa';
 import Link from 'next/link';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebaseClient';
-
-const { Title, Paragraph } = Typography;
 
 interface Donation {
   id: string;
@@ -18,10 +25,11 @@ interface Donation {
 
 const Home: React.FC = () => {
   const [totalDonations, setTotalDonations] = useState<number>(0);
-  const [totalDonated, setTotalDonated] = useState<number>(185000);
+  const [totalDonated] = useState<number>(185000);
   const [totalDonors, setTotalDonors] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
 
   // Fetch data from Firestore on component mount
   const fetchDonationStats = async () => {
@@ -50,7 +58,13 @@ const Home: React.FC = () => {
     } catch (error) {
       console.error('Error fetching donation stats:', error);
       setError('Failed to fetch donation stats. Please try again.');
-      message.error('Failed to fetch donation stats.');
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch donation stats.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
     } finally {
       setLoading(false);
     }
@@ -60,319 +74,327 @@ const Home: React.FC = () => {
     fetchDonationStats();
   }, []);
 
-  const containerStyle = {
-    backgroundColor: '#ffffff',
-    color: '#000000',
-    minHeight: '100vh',
-    padding: '24px',
-    fontFamily: 'var(--font-jetbrains-mono), monospace',
-  };
+  return (
+    <Box
+      bg="#ffffff"
+      color="#000000"
+      minH="100vh"
+      p={6}
+      fontFamily="var(--font-jetbrains-mono), monospace"
+    >
+      {/* Website Title */}
+      <Heading
+        as="h2"
+        size="lg"
+        color="#1890ff"
+        position="absolute"
+        top={6}
+        left={6}
+        m={0}
+        zIndex={1000}
+        w="100%"
+      >
+        Dev<span style={{ color: '#ff4d4f' }}>Aid</span>
+      </Heading>
 
-  const cardStyle = {
-    borderRadius: '16px',
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-    border: '1px solid #e6f7ff',
-    height: '100%',
-  };
+      {/* Scroll to Top Button */}
+      <IconButton
+        aria-label="Scroll to top"
+        icon={<FaArrowUp />}
+        size="lg"
+        position="fixed"
+        bottom="40px"
+        right="40px"
+        zIndex={1000}
+        bg="#ffffff"
+        border="1px solid"
+        borderColor="#1890ff"
+        color="#1890ff"
+        borderRadius="full"
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        _hover={{ bg: '#e6f7ff' }}
+      />
 
-  const statCardStyle = {
-    borderRadius: '16px',
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-    border: '1px solid #e6f7ff',
-    textAlign: 'center' as const,
-  };
-
-  const buttonStyle = {
-    borderRadius: '8px',
-    fontWeight: 500,
-    padding: '8px 24px',
-    transition: 'background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease',
-  };
-
-return (
-    <div style={containerStyle}>
-        {/* Website Title */}
-        <Title
-            level={2}
-            style={{
-                color: '#1890ff',
-                fontSize: '28px',
-                fontWeight: 700,
-                position: 'absolute',
-                top: '24px',
-                left: '24px',
-                margin: 0,
-            }}
+      {/* Hero Section */}
+      <Box
+        as="section"
+        textAlign="center"
+        py={{ base: 10, md: 16 }}
+        px={5}
+        mb={10}
+        borderBottom="1px solid #ddd"
+      >
+        <Heading
+          as="h1"
+          size="2xl"
+          color="#1a1a1a"
+          fontWeight={700}
+          mb={4}
         >
-            DevAid
-        </Title>
-
-        {/* Hero Section */}
-        <section
-            style={{
-                textAlign: 'center',
-                padding: '60px 20px 40px',
-                marginBottom: '40px',
-                borderBottom: '1px solid #ddd',
-            }}
+          Myanmar Earthquake Relief Fund
+        </Heading>
+        <Text
+          fontSize="lg"
+          maxW="600px"
+          mx="auto"
+          mb={8}
+          color="#666666"
+          lineHeight="1.6"
         >
-            <Title
-                level={1}
-                style={{
-                    color: '#1a1a1a',
-                    fontSize: '36px',
-                    fontWeight: 700,
-                    marginBottom: '15px',
-                }}
-            >
-                Myanmar Earthquake Relief Fund
-            </Title>
-            <Paragraph
-                style={{
-                    fontSize: '16px',
-                    maxWidth: '600px',
-                    margin: '0 auto 30px',
-                    color: '#666666',
-                    lineHeight: '1.6',
-                }}
-            >
-                DevAid, a passionate student organization from UIT, is dedicated to making a difference. We provide emergency aid and recovery support to Myanmar's earthquake victims, helping people rebuild their lives with hope and dignity.
-            </Paragraph>
-            <Space size="large" style={{ flexWrap: 'wrap', justifyContent: 'center', gap: '15px' }}>
-                <Button
-                    type="primary"
-                    size="large"
-                    icon={<DollarOutlined />}
-                    style={{
-                        ...buttonStyle,
-                        backgroundColor: '#1890ff',
-                        borderColor: '#1890ff',
-                        color: '#ffffff',
-                    }}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#40a9ff';
-                        e.currentTarget.style.borderColor = '#40a9ff';
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#1890ff';
-                        e.currentTarget.style.borderColor = '#1890ff';
-                    }}
-                >
-                    <Link href="/donate">Donate Now</Link>
-                </Button>
-                <Button
-                    size="large"
-                    icon={<EyeOutlined />}
-                    style={{
-                        ...buttonStyle,
-                        borderColor: '#000000',
-                        color: '#000000',
-                        backgroundColor: '#ffffff',
-                    }}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#e6f7ff';
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#ffffff';
-                    }}
-                >
-                    <Link href="/view_donations">View Donations</Link>
-                </Button>
-            </Space>
-        </section>
-
-        {/* Earthquake & Relief Efforts Section */}
-        <section style={{ marginBottom: '40px' }}>
-            <Row gutter={[20, 20]} justify="center">
-                <Col xs={24} sm={12} md={8}>
-                    <Card style={{ ...cardStyle, height: '100%' }} bodyStyle={{ padding: '16px 24px' }}>
-                        <Title
-                            level={3}
-                            style={{
-                                color: '#1a1a1a',
-                                fontSize: '24px',
-                                marginBottom: '15px',
-                                fontWeight: 500,
-                            }}
-                        >
-                            About the Earthquake
-                        </Title>
-                        <Paragraph
-                            style={{
-                                fontSize: '14px',
-                                color: '#666666',
-                                lineHeight: '1.6',
-                            }}
-                        >
-                            On March 28, 2025, a 7.7-magnitude earthquake hit Myanmar near Mandalay, followed by a 6.4-magnitude aftershock. It claimed over 3,000 lives, demolished infrastructure, and displaced thousands, worsening the crisis.
-                        </Paragraph>
-                    </Card>
-                </Col>
-                <Col xs={24} sm={12} md={8}>
-                    <Card style={{ ...cardStyle, height: '100%' }} bodyStyle={{ padding: '16px 24px' }}>
-                        <Title
-                            level={3}
-                            style={{
-                                color: '#1a1a1a',
-                                fontSize: '24px',
-                                marginBottom: '15px',
-                                fontWeight: 500,
-                            }}
-                        >
-                            Our Relief Efforts
-                        </Title>
-                        <Paragraph
-                            style={{
-                                fontSize: '14px',
-                                color: '#666666',
-                                lineHeight: '1.6',
-                            }}
-                        >
-                            DevAid’s team delivers food, medical camps, and shelters, collaborating with local NGOs and aiding mental health and education for affected children.
-                        </Paragraph>
-                    </Card>
-                </Col>
-            </Row>
-        </section>
-
-        {/* Impact Stats */}
-        <section style={{ textAlign: 'center', marginBottom: '40px' }}>
-            {loading ? (
-                <Row gutter={[20, 20]} justify="center">
-                    <Col xs={24} sm={8}>
-                        <Skeleton active paragraph={{ rows: 2 }} />
-                    </Col>
-                    <Col xs={24} sm={8}>
-                        <Skeleton active paragraph={{ rows: 2 }} />
-                    </Col>
-                    <Col xs={24} sm={8}>
-                        <Skeleton active paragraph={{ rows: 2 }} />
-                    </Col>
-                </Row>
-            ) : error ? (
-                <div style={{ textAlign: 'center', marginBottom: 24 }}>
-                    <Paragraph style={{ color: '#ff4d4f', fontSize: '16px' }}>
-                        {error}
-                    </Paragraph>
-                    <Button
-                        type="primary"
-                        onClick={fetchDonationStats}
-                        style={{ ...buttonStyle, backgroundColor: '#1890ff', borderColor: '#1890ff', color: '#ffffff' }}
-                    >
-                        Retry
-                    </Button>
-                </div>
-            ) : (
-                <Row gutter={[20, 20]} justify="center">
-                    <Col xs={24} sm={8}>
-                        <Card style={{ ...statCardStyle, height: '100%' }} bodyStyle={{ padding: '16px 24px' }}>
-                            <Title level={4} style={{ margin: 0, color: '#666666' }}>
-                                Total Donations
-                            </Title>
-                            <Title level={3} style={{ margin: '8px 0 0 0', color: '#389e0d' }}>
-                                {totalDonations.toLocaleString()} MMK
-                            </Title>
-                        </Card>
-                    </Col>
-                    <Col xs={24} sm={8}>
-                        <Card style={{ ...statCardStyle, height: '100%' }} bodyStyle={{ padding: '16px 24px' }}>
-                            <Title level={4} style={{ margin: 0, color: '#666666' }}>
-                                Total Donated
-                            </Title>
-                            <Title level={3} style={{ margin: '8px 0 0 0', color: '#389e0d' }}>
-                                {totalDonated.toLocaleString()} MMK
-                            </Title>
-                        </Card>
-                    </Col>
-                    <Col xs={24} sm={8}>
-                        <Card style={{ ...statCardStyle, height: '100%' }} bodyStyle={{ padding: '16px 24px' }}>
-                            <Title level={4} style={{ margin: 0, color: '#666666' }}>
-                                Total Donors
-                            </Title>
-                            <Title level={3} style={{ margin: '8px 0 0 0', color: '#1a1a1a' }}>
-                                {totalDonors.toLocaleString()}
-                            </Title>
-                        </Card>
-                    </Col>
-                </Row>
-            )}
-        </section>
-
-        {/* Call to Action */}
-        <section
-            style={{
-                textAlign: 'center',
-                padding: '40px 20px',
-                backgroundColor: '#ffffff',
-                borderRadius: '10px',
-            }}
+          DevAid, a passionate student organization from UIT, is dedicated to making a difference. We provide emergency aid and recovery support to Myanmar@aps earthquake victims, helping people rebuild their lives with hope and dignity.
+        </Text>
+        <Flex
+          justify="center"
+          gap={4}
+          flexWrap="wrap"
         >
-            <Title
-                level={2}
-                style={{
-                    color: '#1a1a1a',
-                    marginBottom: '15px',
-                    fontSize: '32px',
-                    fontWeight: 600,
-                }}
+          <Button
+            as={Link}
+            href="/donate"
+            leftIcon={<FaDollarSign />}
+            size="lg"
+            bg="#1890ff"
+            color="#ffffff"
+            borderRadius="md"
+            fontWeight="medium"
+            px={6}
+            _hover={{ bg: '#40a9ff' }}
+            transition="background-color 0.3s ease, border-color 0.3s ease"
+          >
+            Donate Now
+          </Button>
+          <Button
+            as={Link}
+            href="/view_donations"
+            leftIcon={<FaEye />}
+            size="lg"
+            bg="#ffffff"
+            color="#000000"
+            border="1px solid #000000"
+            borderRadius="md"
+            fontWeight="medium"
+            px={6}
+            _hover={{ bg: '#e6f7ff' }}
+            transition="background-color 0.3s ease"
+          >
+            View Donations
+          </Button>
+        </Flex>
+      </Box>
+
+      {/* Earthquake & Relief Efforts Section */}
+      <Box as="section" mb={10}>
+        <Flex
+          direction={{ base: 'column', md: 'row' }}
+          justify="center"
+          gap={5}
+        >
+          <Box
+            borderRadius="lg"
+            boxShadow="0 4px 12px rgba(0, 0, 0, 0.1)"
+            border="1px solid #e6f7ff"
+            p={4}
+            w={{ base: '100%', md: '50%' }}
+            maxW={{ md: '400px' }}
+          >
+            <Heading
+              as="h3"
+              size="lg"
+              color="#1a1a1a"
+              fontWeight={500}
+              mb={4}
             >
-                Support the Recovery
-            </Title>
-            <Paragraph
-                style={{
-                    fontSize: '16px',
-                    maxWidth: '600px',
-                    margin: '0 auto 30px',
-                    color: '#666666',
-                    lineHeight: '1.6',
-                }}
+              About the Earthquake
+            </Heading>
+            <Text
+              fontSize="sm"
+              color="#666666"
+              lineHeight="1.6"
             >
-                Your donation aids earthquake victims in Myanmar with essentials and recovery support.
-            </Paragraph>
-            <Space size="large" style={{ flexWrap: 'wrap', justifyContent: 'center', gap: '15px' }}>
-                <Button
-                    type="primary"
-                    size="large"
-                    icon={<DollarOutlined />}
-                    style={{
-                        ...buttonStyle,
-                        backgroundColor: '#1890ff',
-                        borderColor: '#1890ff',
-                        color: '#ffffff',
-                    }}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#40a9ff';
-                        e.currentTarget.style.borderColor = '#40a9ff';
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#1890ff';
-                        e.currentTarget.style.borderColor = '#1890ff';
-                    }}
-                >
-                    <Link href="/donate">Donate Now</Link>
-                </Button>
-                <Button
-                    size="large"
-                    icon={<EyeOutlined />}
-                    style={{
-                        ...buttonStyle,
-                        borderColor: '#000000',
-                        color: '#000000',
-                        backgroundColor: '#ffffff',
-                    }}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = '#e6f7ff';
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = '#ffffff';
-                    }}
-                >
-                    <Link href="/view_donations">View Donations</Link>
-                </Button>
-            </Space>
-        </section>
-    </div>
-);
+              On March 28, 2025, a 7.7-magnitude earthquake hit Myanmar near Mandalay, followed by a 6.4-magnitude aftershock. It claimed over 3,000 lives, demolished infrastructure, and displaced thousands, worsening the crisis.
+            </Text>
+          </Box>
+          <Box
+            borderRadius="lg"
+            boxShadow="0 4px 12px rgba(0, 0, 0, 0.1)"
+            border="1px solid #e6f7ff"
+            p={4}
+            w={{ base: '100%', md: '50%' }}
+            maxW={{ md: '400px' }}
+          >
+            <Heading
+              as="h3"
+              size="lg"
+              color="#1a1a1a"
+              fontWeight={500}
+              mb={4}
+            >
+              Our Relief Efforts
+            </Heading>
+            <Text
+              fontSize="sm"
+              color="#666666"
+              lineHeight="1.6"
+            >
+              DevAid’s team delivers food, medical camps, and shelters, collaborating with local NGOs and aiding mental health and education for affected children.
+            </Text>
+          </Box>
+        </Flex>
+      </Box>
+
+      {/* Impact Stats */}
+      <Box as="section" textAlign="center" mb={10}>
+        {loading ? (
+          <Flex
+            direction={{ base: 'column', md: 'row' }}
+            justify="center"
+            gap={5}
+          >
+            <Skeleton height="120px" w={{ base: '100%', md: '300px' }} />
+            <Skeleton height="120px" w={{ base: '100%', md: '300px' }} />
+            <Skeleton height="120px" w={{ base: '100%', md: '300px' }} />
+          </Flex>
+        ) : error ? (
+          <Box textAlign="center" mb={6}>
+            <Text color="#ff4d4f" fontSize="lg">
+              {error}
+            </Text>
+            <Button
+              onClick={fetchDonationStats}
+              bg="#1890ff"
+              color="#ffffff"
+              borderRadius="md"
+              fontWeight="medium"
+              px={6}
+              mt={4}
+              _hover={{ bg: '#40a9ff' }}
+            >
+              Retry
+            </Button>
+          </Box>
+        ) : (
+          <Flex
+            direction={{ base: 'column', md: 'row' }}
+            justify="center"
+            gap={5}
+          >
+            <Box
+              borderRadius="lg"
+              boxShadow="0 4px 12px rgba(0, 0, 0, 0.1)"
+              border="1px solid #e6f7ff"
+              p={4}
+              w={{ base: '100%', md: '300px' }}
+              textAlign="center"
+            >
+              <Heading as="h4" size="md" color="#666666" mb={2}>
+                Total Donations
+              </Heading>
+              <Heading as="h3" size="lg" color="#389e0d">
+                {totalDonations.toLocaleString()} MMK
+              </Heading>
+            </Box>
+            <Box
+              borderRadius="lg"
+              boxShadow="0 4px 12px rgba(0, 0, 0, 0.1)"
+              border="1px solid #e6f7ff"
+              p={4}
+              w={{ base: '100%', md: '300px' }}
+              textAlign="center"
+            >
+              <Heading as="h4" size="md" color="#666666" mb={2}>
+                Total Donated
+              </Heading>
+              <Heading as="h3" size="lg" color="#389e0d">
+                {totalDonated.toLocaleString()} MMK
+              </Heading>
+            </Box>
+            <Box
+              borderRadius="lg"
+              boxShadow="0 4px 12px rgba(0, 0, 0, 0.1)"
+              border="1px solid #e6f7ff"
+              p={4}
+              w={{ base: '100%', md: '300px' }}
+              textAlign="center"
+            >
+              <Heading as="h4" size="md" color="#666666" mb={2}>
+                Total Donors
+              </Heading>
+              <Heading as="h3" size="lg" color="#1a1a1a">
+                {totalDonors.toLocaleString()}
+              </Heading>
+            </Box>
+          </Flex>
+        )}
+      </Box>
+
+      {/* Call to Action */}
+      <Box
+        as="section"
+        textAlign="center"
+        py={10}
+        px={5}
+        bg="#ffffff"
+        borderRadius="lg"
+      >
+        <Heading
+          as="h2"
+          size="xl"
+          color="#1a1a1a"
+          mb={4}
+          fontWeight={600}
+        >
+          Support the Recovery
+        </Heading>
+        <Text
+          fontSize="lg"
+          maxW="600px"
+          mx="auto"
+          mb={8}
+          color="#666666"
+          lineHeight="1.6"
+        >
+          Your donation aids earthquake victims in Myanmar with essentials and recovery support.
+        </Text>
+        <Flex
+          justify="center"
+          gap={4}
+          flexWrap="wrap"
+        >
+          <Button
+            as={Link}
+            href="/donate"
+            leftIcon={<FaDollarSign />}
+            size="lg"
+            bg="#1890ff"
+            color="#ffffff"
+            borderRadius="md"
+            fontWeight="medium"
+            px={6}
+            _hover={{ bg: '#40a9ff' }}
+            transition="background-color 0.3s ease, border-color 0.3s ease"
+          >
+            Donate Now
+          </Button>
+          <Button
+            as={Link}
+            href="/view_donations"
+            leftIcon={<FaEye />}
+            size="lg"
+            bg="#ffffff"
+            color="#000000"
+            border="1px solid #000000"
+            borderRadius="md"
+            fontWeight="medium"
+            px={6}
+            _hover={{ bg: '#e6f7ff' }}
+            transition="background-color 0.3s ease"
+          >
+            View Donations
+          </Button>
+        </Flex>
+      </Box>
+    </Box>
+  );
 };
 
 export default Home;

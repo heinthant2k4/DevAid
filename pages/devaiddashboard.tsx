@@ -1,18 +1,72 @@
 import React, { useEffect, useState } from "react";
 import AdminLayout from "../components/layout";
-import { Card, Row, Col, Table, Tag, Spin } from "antd";
-import { Line } from "@ant-design/charts";
-import { collection, getDocs } from "firebase/firestore";
+import {
+  Box,
+  SimpleGrid,
+  Card,
+  CardHeader,
+  CardBody,
+  Heading,
+  Text,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  Badge,
+  Spinner,
+  Button,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  ModalBody,
+  ModalFooter,
+  FormControl,
+  FormLabel,
+  Input,
+  Select,
+  VStack,
+  Icon,
+} from "@chakra-ui/react";
+import { collection, getDocs, addDoc } from "firebase/firestore";
 import { db } from "@/lib/firebaseClient";
-import { DollarOutlined, UserOutlined, FundOutlined } from "@ant-design/icons";
+import { FaDollarSign, FaUser, FaHandHoldingHeart, FaPlusCircle } from "react-icons/fa";
+import { useToast } from "@chakra-ui/react";
+
+interface TopDonor {
+  id: string;
+  name: string;
+  amount: number;
+}
+
+interface DonatedBack {
+  id: string;
+  organizationName: string;
+  count: number;
+  items: string;
+  typeOfItems: string;
+  total: number;
+}
 
 const Dashboard: React.FC = () => {
   const [totalDonations, setTotalDonations] = useState(0);
   const [totalDonors, setTotalDonors] = useState(0);
   const [amountDonatedBack, setAmountDonatedBack] = useState(0);
-  const [topDonors, setTopDonors] = useState<{ id: string; name: string; amount: number }[]>([]);
-  const [donationTrends, setDonationTrends] = useState<{ date: string; value: number }[]>([]);
+  const [topDonors, setTopDonors] = useState<TopDonor[]>([]);
+  const [donatedBackData, setDonatedBackData] = useState<DonatedBack[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    organizationName: "",
+    count: "",
+    items: "",
+    typeOfItems: "",
+    total: "",
+  });
+  const toast = useToast();
 
   // Fetch total donations and donors
   const fetchTotalDonations = async () => {
@@ -27,12 +81,25 @@ const Dashboard: React.FC = () => {
     setTotalDonors(uniqueDonors);
   };
 
-  // Fetch amount donated back
+  // Fetch amount donated back and donated back details
   const fetchAmountDonatedBack = async () => {
     const snapshot = await getDocs(collection(db, "donationDetails"));
-    const donationDetails = snapshot.docs.map((doc) => doc.data());
+    const donationDetails = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...(doc.data() as { organizationName?: string; count?: number; items?: string; typeOfItems?: string; total?: number }),
+    }));
     const totalDonatedBack = donationDetails.reduce((sum, detail) => sum + (detail.total || 0), 0);
     setAmountDonatedBack(totalDonatedBack);
+    setDonatedBackData(
+      donationDetails.map((detail) => ({
+        id: detail.id,
+        organizationName: detail.organizationName || "Unknown",
+        count: detail.count || 0,
+        items: detail.items || "N/A",
+        typeOfItems: detail.typeOfItems || "N/A",
+        total: detail.total || 0,
+      }))
+    );
   };
 
   // Fetch top donors
@@ -53,209 +120,271 @@ const Dashboard: React.FC = () => {
     setTopDonors(sortedDonations);
   };
 
-  // Fetch donation trends
-  const fetchDonationTrends = async () => {
-    const snapshot = await getDocs(collection(db, "donations"));
-    const donations = snapshot.docs.map((doc) => doc.data());
-    const trendsMap = donations.reduce((acc, donation) => {
-      const date = donation.createdAt
-        ? new Date(donation.createdAt.seconds * 1000).toLocaleDateString("en-GB")
-        : "Unknown";
-      acc[date] = (acc[date] || 0) + (donation.amount || 0);
-      return acc;
-    }, {} as { [key: string]: number });
-
-    const trendsData = Object.entries(trendsMap)
-      .map(([date, value]) => ({ date, value }))
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    setDonationTrends(trendsData);
+  // Add new donated back entry
+  const handleAddDonation = async () => {
+    try {
+      const newDonation = {
+        organizationName: formData.organizationName,
+        amount: parseFloat(formData.count) || 0,
+        items: formData.items,
+        typeOfItems: formData.typeOfItems,
+        total: parseFloat(formData.total) || 0,
+        createdAt: new Date().toISOString(),
+      };
+      await addDoc(collection(db, "donationDetails"), newDonation);
+      toast({
+        title: "Success",
+        description: "Donation added successfully!",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+      setFormData({
+        organizationName: "",
+        count: "",
+        items: "",
+        typeOfItems: "",
+        total: "",
+      });
+      setIsModalOpen(false);
+      // Refresh donated back data
+      await fetchAmountDonatedBack();
+    } catch (error) {
+      console.error("Error adding donation:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add donation.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
   };
 
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      await Promise.all([
-        fetchTotalDonations(),
-        fetchAmountDonatedBack(),
-        fetchTopDonors(),
-        fetchDonationTrends(),
-      ]);
+      await Promise.all([fetchTotalDonations(), fetchAmountDonatedBack(), fetchTopDonors()]);
       setLoading(false);
     };
     loadData();
   }, []);
 
-  // Line Chart Config
-  const lineConfig = {
-    data: donationTrends,
-    xField: "date",
-    yField: "value",
-    color: "#1890ff",
-    point: {
-      size: 5,
-      shape: "diamond",
-      style: { fill: "#1890ff", stroke: "#fff", lineWidth: 2 },
-    },
-    label: {
-      style: { fill: "#333", fontSize: 12 },
-    },
-    xAxis: {
-      label: { autoRotate: true, style: { fontSize: 12 } },
-    },
-    yAxis: {
-      label: {
-        formatter: (value: string) => `${parseInt(value).toLocaleString()} MMK`,
-      },
-    },
-    tooltip: {
-      formatter: (datum: any) => ({
-        name: "Donation Amount",
-        value: `${datum.value.toLocaleString()} MMK`,
-      }),
-    },
-    interactions: [{ type: "marker-active" }],
+  // Handle form input changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
-
-  // Table Columns for Top Donors
-  const columns = [
-    {
-      title: "Donor Name",
-      dataIndex: "name",
-      key: "name",
-      render: (text: string) => <span style={{ color: "#1890ff", fontWeight: "600" }}>{text}</span>,
-    },
-    {
-      title: "Amount (MMK)",
-      dataIndex: "amount",
-      key: "amount",
-      render: (amount: number) => (
-        <Tag color="#00cc99" style={{ fontWeight: "bold", padding: "4px 8px" }}>
-          {amount.toLocaleString()} MMK
-        </Tag>
-      ),
-    },
-  ];
 
   return (
     <AdminLayout>
-      <div style={{ padding: "24px", background: "#f0f2f5" }}>
-        <h1
-          style={{
-            fontSize: "28px",
-            fontWeight: "bold",
-            marginBottom: "24px",
-            color: "#1890ff",
-            letterSpacing: "1px",
-          }}
-        >
+      <Box p={6} bg="gray.100">
+        <Heading as="h1" size="xl" mb={6} color="blue.500" fontWeight="bold">
           Dashboard
-        </h1>
+        </Heading>
         {loading ? (
-          <div style={{ textAlign: "center", padding: "50px" }}>
-            <Spin size="large" />
-          </div>
+          <Box textAlign="center" py={10}>
+            <Spinner size="xl" />
+          </Box>
         ) : (
           <>
-            <Row gutter={[16, 16]}>
-              <Col xs={24} sm={12} md={6}>
-                <Card
-                  title={<span style={{ color: "#fff" }}>Total Donations</span>}
-                  bordered={false}
-                  style={{
-                    background: "#00cc99",
-                    color: "#fff",
-                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-                  }}
-                  headStyle={{ background: "#00cc99", color: "#fff", borderBottom: "none" }}
-                >
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    <DollarOutlined style={{ fontSize: "24px", marginRight: "8px" }} />
-                    <span style={{ fontSize: "24px", fontWeight: "bold" }}>
-                      MMK {totalDonations.toLocaleString()}
-                    </span>
-                  </div>
-                </Card>
-                <Card
-                  title={<span style={{ color: "#fff" }}>Total Donors</span>}
-                  bordered={false}
-                  style={{
-                    background: "#ff7043",
-                    color: "#fff",
-                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-                  }}
-                  headStyle={{ background: "#ff7043", color: "#fff", borderBottom: "none" }}
-                >
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    <UserOutlined style={{ fontSize: "24px", marginRight: "8px" }} />
-                    <span style={{ fontSize: "24px", fontWeight: "bold" }}>
-                      {totalDonors.toLocaleString()}
-                    </span>
-                  </div>
-                </Card>
-                <Card
-                  title={<span style={{ color: "#fff" }}>Amount Donated Back</span>}
-                  bordered={false}
-                  style={{
-                    background: "#ffca28",
-                    color: "#fff",
-                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-                  }}
-                  headStyle={{ background: "#ffca28", color: "#fff", borderBottom: "none" }}
-                >
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    <FundOutlined style={{ fontSize: "24px", marginRight: "8px" }} />
-                    <span style={{ fontSize: "24px", fontWeight: "bold" }}>
-                      MMK {amountDonatedBack.toLocaleString()}
-                    </span>
-                  </div>
-                </Card>
-              </Col>
-              <Col xs={24} sm={24} md={18}>
-                <Card
-                  title={<span style={{ color: "#fff" }}>Top Donors</span>}
-                  bordered={false}
-                  style={{
-                    background: "#1890ff",
-                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-                  }}
-                  headStyle={{ background: "#1890ff", color: "#fff", borderBottom: "none" }}
-                >
-                  <Table
-                    columns={columns}
-                    dataSource={topDonors}
-                    rowKey="id"
-                    pagination={false}
-                    style={{ background: "#fff", borderRadius: "8px" }}
-                  />
-                </Card>
-              </Col>
-            </Row>
-            <Row gutter={[16, 16]} style={{ marginTop: "24px" }}>
-              <Col xs={24}>
-                <Card
-                  title={<span style={{ color: "#fff" }}>Donation Trends Over Time</span>}
-                  bordered={false}
-                  style={{
-                    background: "#7b1fa2",
-                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-                  }}
-                  headStyle={{ background: "#7b1fa2", color: "#fff", borderBottom: "none" }}
-                >
-                  <div style={{ background: "#fff", borderRadius: "8px", padding: "16px" }}>
-                    {donationTrends.length > 0 ? (
-                      <Line {...lineConfig} style={{ height: "300px" }} />
-                    ) : (
-                      <p style={{ textAlign: "center", color: "#999", fontSize: "16px" }}>
-                        No data available
-                      </p>
-                    )}
-                  </div>
-                </Card>
-              </Col>
-            </Row>
+            <SimpleGrid columns={[1, 1, 3]} spacing={4} mb={6}>
+              {/* Total Donations */}
+              <Card bg="teal.400" color="white" boxShadow="md">
+                <CardHeader>
+                  <Heading size="md">Total Donations</Heading>
+                </CardHeader>
+                <CardBody display="flex" alignItems="center">
+                  <Icon as={FaDollarSign} boxSize={6} mr={2} />
+                  <Text fontSize="xl" fontWeight="bold">
+                    MMK {totalDonations.toLocaleString()}
+                  </Text>
+                </CardBody>
+              </Card>
+              {/* Total Donors */}
+              <Card bg="orange.400" color="white" boxShadow="md">
+                <CardHeader>
+                  <Heading size="md">Total Donors</Heading>
+                </CardHeader>
+                <CardBody display="flex" alignItems="center">
+                  <Icon as={FaDollarSign} boxSize={6} mr={2} />
+                  <Text fontSize="xl" fontWeight="bold">
+                    {totalDonors.toLocaleString()}
+                  </Text>
+                </CardBody>
+              </Card>
+              {/* Amount Donated Back */}
+              <Card bg="yellow.400" color="white" boxShadow="md">
+                <CardHeader>
+                  <Heading size="md">Amount Donated Back</Heading>
+                </CardHeader>
+                <CardBody display="flex" alignItems="center">
+                  <Icon as={FaHandHoldingHeart} boxSize={6} mr={2} />
+                  <Text fontSize="xl" fontWeight="bold">
+                    MMK {amountDonatedBack.toLocaleString()}
+                  </Text>
+                </CardBody>
+              </Card>
+            </SimpleGrid>
+
+            <SimpleGrid columns={[1, 1, 2]} spacing={4}>
+              {/* Top Donors Table */}
+              <Card bg="blue.500" boxShadow="md">
+                <CardHeader>
+                  <Heading size="md" color="white">
+                    Top Donors
+                  </Heading>
+                </CardHeader>
+                <CardBody bg="white" roundedBottom="md">
+                  <Table variant="simple">
+                    <Thead>
+                      <Tr>
+                        <Th>Donor Name</Th>
+                        <Th>Amount (MMK)</Th>
+                      </Tr>
+                    </Thead>
+                    <Tbody>
+                      {topDonors.map((donor) => (
+                        <Tr key={donor.id}>
+                          <Td>
+                            <Text color="blue.500" fontWeight="semibold">
+                              {donor.name}
+                            </Text>
+                          </Td>
+                          <Td>
+                            <Badge colorScheme="teal" p={1}>
+                              {donor.amount.toLocaleString()} MMK
+                            </Badge>
+                          </Td>
+                        </Tr>
+                      ))}
+                    </Tbody>
+                  </Table>
+                </CardBody>
+              </Card>
+
+              {/* Donated Back Table */}
+              <Card bg="purple.500" boxShadow="md">
+                <CardHeader display="flex" justifyContent="space-between" alignItems="center">
+                  <Heading size="md" color="white">
+                    Donated Back Details
+                  </Heading>
+                  <Button
+                    leftIcon={<FaPlusCircle />}
+                    colorScheme="teal"
+                    size="sm"
+                    onClick={() => setIsModalOpen(true)}
+                  >
+                    Add Donation
+                  </Button>
+                </CardHeader>
+                <CardBody bg="white" roundedBottom="md">
+                  {donatedBackData.length > 0 ? (
+                    <Table variant="simple">
+                      <Thead>
+                        <Tr>
+                          <Th>Organization</Th>
+                          <Th>Count</Th>
+                          <Th>Items</Th>
+                          <Th>Type</Th>
+                          <Th>Total (MMK)</Th>
+                        </Tr>
+                      </Thead>
+                      <Tbody>
+                        {donatedBackData.map((item) => (
+                          <Tr key={item.id}>
+                            <Td>{item.organizationName}</Td>
+                            <Td>{item.count.toLocaleString()}</Td>
+                            <Td>{item.items}</Td>
+                            <Td>{item.typeOfItems}</Td>
+                            <Td>{item.total.toLocaleString()}</Td>
+                          </Tr>
+                        ))}
+                      </Tbody>
+                    </Table>
+                  ) : (
+                    <Text textAlign="center" color="gray.500">
+                      No data available
+                    </Text>
+                  )}
+                </CardBody>
+              </Card>
+            </SimpleGrid>
           </>
         )}
-      </div>
+
+        {/* Add Donation Modal */}
+        <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Add Donation</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <VStack spacing={4}>
+                <FormControl isRequired>
+                  <FormLabel>Organization Name</FormLabel>
+                  <Input
+                    name="organizationName"
+                    value={formData.organizationName}
+                    onChange={handleInputChange}
+                    placeholder="Enter organization name"
+                  />
+                </FormControl>
+                <FormControl isRequired>
+                  <FormLabel>Count</FormLabel>
+                  <Input
+                    name="count"
+                    type="number"
+                    value={formData.count}
+                    onChange={handleInputChange}
+                    placeholder="Enter items amount"
+                  />
+                </FormControl>
+                <FormControl isRequired>
+                  <FormLabel>Items</FormLabel>
+                  <Input
+                    name="items"
+                    value={formData.items}
+                    onChange={handleInputChange}
+                    placeholder="Enter items (e.g., Books, Clothes)"
+                  />
+                </FormControl>
+                <FormControl isRequired>
+                  <FormLabel>Type of Items</FormLabel>
+                  <Select
+                    name="typeOfItems"
+                    value={formData.typeOfItems}
+                    onChange={handleInputChange}
+                    placeholder="Select type"
+                  >
+                    <option value="Material">Material</option>
+                    <option value="Financial">Financial</option>
+                    <option value="Services">Services</option>
+                  </Select>
+                </FormControl>
+                <FormControl isRequired>
+                  <FormLabel>Total Amount (MMK)</FormLabel>
+                  <Input
+                    name="total"
+                    type="number"
+                    value={formData.total}
+                    onChange={handleInputChange}
+                    placeholder="Enter total amount"
+                  />
+                </FormControl>
+              </VStack>
+            </ModalBody>
+            <ModalFooter>
+              <Button colorScheme="blue" mr={3} onClick={handleAddDonation}>
+                Add
+              </Button>
+              <Button variant="ghost" onClick={() => setIsModalOpen(false)}>
+                Cancel
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+      </Box>
     </AdminLayout>
   );
 };

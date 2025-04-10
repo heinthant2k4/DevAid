@@ -1,14 +1,29 @@
 import type { Metadata } from "next";
-import { JetBrains_Mono } from "next/font/google"; // Changed import
+import { JetBrains_Mono } from "next/font/google";
 import "../styles/globals.css";
-import { ConfigProvider } from 'antd';
-import theme from "./theme";
+import { ChakraProvider, extendTheme } from "@chakra-ui/react";
 
 // Configure JetBrains Mono font
 const jetBrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
   subsets: ["latin"],
-  weight: ["400", "500", "600"], // Specify weights you need
+  weight: ["400", "500", "600"],
+});
+
+// Extend Chakra UI theme to match your custom styles (if needed)
+const theme = extendTheme({
+  fonts: {
+    body: "var(--font-jetbrains-mono), monospace",
+    heading: "var(--font-jetbrains-mono), monospace",
+  },
+  colors: {
+    blue: {
+      500: "#1890ff", // Primary blue from your previous theme
+    },
+    red: {
+      500: "#ff4d4f", // Error red from your previous theme
+    },
+  },
 });
 
 export const metadata: Metadata = {
@@ -30,12 +45,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${jetBrainsMono.variable} antialiased`}
-      >
-        <ConfigProvider theme={theme}>
+      <body className={`${jetBrainsMono.variable} antialiased`}>
+        <ChakraProvider theme={theme}>
           {children}
-        </ConfigProvider>
+        </ChakraProvider>
       </body>
     </html>
   );
