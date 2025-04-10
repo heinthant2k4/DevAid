@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Button,
@@ -22,88 +22,17 @@ import {
 } from '@chakra-ui/react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { collection, addDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebaseClient';
-import { ArrowUpIcon, CopyIcon, ArrowLeftIcon } from '@chakra-ui/icons';
-import { useToast } from '@chakra-ui/react';
+import { ArrowUpIcon, ArrowLeftIcon } from '@chakra-ui/icons';
 
 const DonatePage: React.FC = () => {
   const [modalVisible, setModalVisible] = useState({
     kbzPay: false,
     AYAPay: false,
-    transactionKey: false,
   });
-  const [uniqueKey, setUniqueKey] = useState<string>('');
-  const toast = useToast();
 
   const qrImages = {
     kbzPay: '/images/wkhs_kbz.jpg',
     AYAPay: '/images/wkhs_aya.jpg',
-  };
-
-  // Generate a unique key when the component mounts
-  useEffect(() => {
-    const generateUniqueKey = (): string => {
-      if (crypto?.randomUUID) {
-        return crypto.randomUUID();
-      }
-      return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-    };
-    const key = generateUniqueKey();
-    setUniqueKey(key);
-  }, []);
-
-  // Function to store the unique key in Firebase
-  const storeUniqueKey = async (paymentMethod: string) => {
-    try {
-      const donationKeyData = {
-        uniqueKey,
-        paymentMethod,
-        timestamp: new Date().toISOString(),
-        status: 'pending',
-      };
-      await addDoc(collection(db, 'donationKeys'), donationKeyData);
-      toast({
-        title: 'Success',
-        description: 'Donation key stored successfully!',
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
-      });
-    } catch (error) {
-      console.error('Error storing unique key:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to store donation key.',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
-    }
-  };
-
-  // Copy unique key to clipboard
-  const copyToClipboard = () => {
-    navigator.clipboard
-      .writeText(uniqueKey)
-      .then(() => {
-        toast({
-          title: 'Success',
-          description: 'Unique key copied to clipboard!',
-          status: 'success',
-          duration: 3000,
-          isClosable: true,
-        });
-      })
-      .catch(() => {
-        toast({
-          title: 'Error',
-          description: 'Failed to copy unique key.',
-          status: 'error',
-          duration: 3000,
-          isClosable: true,
-        });
-      });
   };
 
   return (
@@ -210,10 +139,7 @@ const DonatePage: React.FC = () => {
           </Card>
           <Modal
             isOpen={modalVisible.kbzPay}
-            onClose={() => {
-              setModalVisible({ ...modalVisible, kbzPay: false });
-              storeUniqueKey('KBZ Pay');
-            }}
+            onClose={() => setModalVisible({ ...modalVisible, kbzPay: false })}
             isCentered
             size="xs"
           >
@@ -234,17 +160,9 @@ const DonatePage: React.FC = () => {
                     09765127445 <br />
                     Htet Yadanar Myo
                   </Text>
-                  <Text fontSize="lg" color="gray.800">
-                  Notes တွင်ကူးထည့်ပေးရန်: <strong>{uniqueKey}</strong>
-                    <Button
-                      variant="link"
-                      leftIcon={<CopyIcon />}
-                      onClick={copyToClipboard}
-                      color="blue.500"
-                      ml={2}
-                    >
-                      Copy
-                    </Button>
+                  <Text fontSize="lg" color="gray.800" p={3}>
+                    Transaction လေးပြီးရင် Telegram -{' '}
+                    <strong>@thutahuang</strong> <strong>@whks3777</strong> ကို ပြောပေးပါ။
                   </Text>
                 </VStack>
               </ModalBody>
@@ -283,10 +201,7 @@ const DonatePage: React.FC = () => {
           </Card>
           <Modal
             isOpen={modalVisible.AYAPay}
-            onClose={() => {
-              setModalVisible({ ...modalVisible, AYAPay: false });
-              storeUniqueKey('AYA Pay');
-            }}
+            onClose={() => setModalVisible({ ...modalVisible, AYAPay: false })}
             isCentered
             size="xs"
           >
@@ -307,17 +222,9 @@ const DonatePage: React.FC = () => {
                     09765127445 <br />
                     Htet Yadanar Myo
                   </Text>
-                  <Text fontSize="lg" color="gray.800">
-                  Notes တွင်ကူးထည့်ပေးရန်: <strong>{uniqueKey}</strong>
-                    <Button
-                      variant="link"
-                      leftIcon={<CopyIcon />}
-                      onClick={copyToClipboard}
-                      color="blue.500"
-                      ml={2}
-                    >
-                      Copy
-                    </Button>
+                  <Text fontSize="lg" color="gray.800" p={3}>
+                    Transaction လေးပြီးရင် Telegram -{' '}
+                    <strong>@thutahuang</strong> <strong>@whks3777</strong> ကို ပြောပေးပါ။
                   </Text>
                 </VStack>
               </ModalBody>
