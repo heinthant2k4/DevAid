@@ -234,8 +234,8 @@ const DonatePage: React.FC = () => {
                     09765127445 <br />
                     Htet Yadanar Myo
                   </Text>
-                  <Text fontSize="sm" color="gray.800">
-                    Please paste this unique key in notes: <strong>{uniqueKey}</strong>
+                  <Text fontSize="lg" color="gray.800">
+                  Notes တွင်ကူးထည့်ပေးရန်: <strong>{uniqueKey}</strong>
                     <Button
                       variant="link"
                       leftIcon={<CopyIcon />}
