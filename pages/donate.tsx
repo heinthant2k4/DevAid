@@ -150,7 +150,7 @@ const DonatePage: React.FC = () => {
       </Title>
 
       {/* Theme Toggle Button */}
-      <Button
+      {/* <Button
         onClick={toggleTheme}
         shape="circle"
         icon={<EyeOutlined />} // Using EyeOutlined as a theme toggle icon
@@ -167,7 +167,7 @@ const DonatePage: React.FC = () => {
           boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
           transition: 'background-color 0.5s ease, color 0.5s ease',
         }}
-      />
+      /> */}
 
       {/* Header Section */}
       <section style={{ marginBottom: '40px', paddingTop: '40px' }}>
