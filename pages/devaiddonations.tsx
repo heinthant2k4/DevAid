@@ -118,7 +118,7 @@ const DonationsPage: React.FC = () => {
 
   useEffect(() => {
     fetchDonations();
-  }, [fetchDonations]);
+  }, []);
 
   const handleSearch = (value: string) => {
     setSearchText(value);

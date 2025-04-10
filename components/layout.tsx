@@ -18,8 +18,8 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   // Map routes to menu keys
   const menuKeyMap: { [key: string]: string } = {
-    "/dashboard": "dashboard",
-    "/donations": "donations",
+    "/devaiddashboard": "dashboard",
+    "/devaiddonations": "donations",
   };
 
   // Get the current menu key based on the route
@@ -57,7 +57,7 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           <VStack spacing={2} align="stretch" mt={4}>
             <ChakraLink
               as={Link}
-              href="/dashboard"
+              href="/devaiddashboard"
               display="flex"
               alignItems="center"
               p={3}
@@ -69,7 +69,7 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
             </ChakraLink>
             <ChakraLink
               as={Link}
-              href="/donations"
+              href="/devaiddonations"
               display="flex"
               alignItems="center"
               p={3}

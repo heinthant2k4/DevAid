@@ -10,6 +10,12 @@ import {
   Skeleton,
   useToast,
   IconButton,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
 } from '@chakra-ui/react';
 import { FaDollarSign, FaEye, FaArrowUp } from 'react-icons/fa';
 import Link from 'next/link';
@@ -23,11 +29,21 @@ interface Donation {
   compositeKey: string;
 }
 
+interface DonatedBack {
+  id: string;
+  organizationName: string;
+  amount: number;
+  items: string;
+  typeOfItems: string;
+  total: number;
+}
+
 const Home: React.FC = () => {
   const [totalDonations, setTotalDonations] = useState<number>(0);
-  const [totalDonated] = useState<number>(185000);
   const [totalDonors, setTotalDonors] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
+  const [totalDonated, setTotalDonated] = useState<number>(0);
+  const [donatedBackData, setDonatedBackData] = useState<DonatedBack[]>([]);
   const [error, setError] = useState<string | null>(null);
   const toast = useToast();
 
@@ -36,25 +52,47 @@ const Home: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const snapshot = await getDocs(collection(db, 'donations'));
-      const donations: Donation[] = snapshot.docs.map((doc) => ({
+
+      // Fetch donations from the 'donations' collection
+      const donationsSnapshot = await getDocs(collection(db, 'donations'));
+      const donations: Donation[] = donationsSnapshot.docs.map((doc) => ({
         id: doc.id,
         name: doc.data().name || doc.data().donorName || 'Unknown',
         amount: doc.data().amount || 0,
         compositeKey: doc.data().compositeKey || 'N/A',
       }));
 
-      // Calculate total donations (sum of amounts)
-      const sum = donations.reduce((acc, donation) => acc + (Number(donation.amount) || 0), 0);
-      setTotalDonations(sum);
+      // Calculate total donations (sum of amounts from 'donations')
+      const donationSum = donations.reduce((acc, donation) => acc + (Number(donation.amount) || 0), 0);
+      setTotalDonations(donationSum);
 
-      // Set total donors (count of unique donors)
+      // Set total donors (count of unique donors from 'donations')
       const uniqueDonors = new Set(donations.map((donation) => donation.name || 'Anonymous')).size;
       setTotalDonors(uniqueDonors);
 
+      // Fetch donatedBack from the 'donationDetails' collection (as per Dashboard)
+      const donatedBackSnapshot = await getDocs(collection(db, 'donationDetails'));
+      const donatedBack: DonatedBack[] = donatedBackSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        organizationName: doc.data().organizationName || 'Unknown',
+        amount: doc.data().amount || 0,
+        items: doc.data().items || 'N/A',
+        typeOfItems: doc.data().typeOfItems || 'N/A',
+        total: doc.data().total || 0,
+      }));
+
+      // Calculate total donated (sum of totals from 'donationDetails')
+      const donatedSum = donatedBack.reduce((acc, donation) => acc + (Number(donation.total) || 0), 0);
+      setTotalDonated(donatedSum);
+
+      // Set donatedBack data for the table
+      setDonatedBackData(donatedBack);
+
       console.log('Fetched donations:', donations);
-      console.log('Total donations:', sum);
+      console.log('Total donations:', donationSum);
       console.log('Total donors:', uniqueDonors);
+      console.log('Fetched donatedBack:', donatedBack);
+      console.log('Total donated:', donatedSum);
     } catch (error) {
       console.error('Error fetching donation stats:', error);
       setError('Failed to fetch donation stats. Please try again.');
@@ -141,7 +179,7 @@ const Home: React.FC = () => {
           color="#666666"
           lineHeight="1.6"
         >
-          DevAid, a passionate student organization from UIT, is dedicated to making a difference. We provide emergency aid and recovery support to Myanmar@aps earthquake victims, helping people rebuild their lives with hope and dignity.
+          DevAid, a passionate student organization from UIT, is dedicated to making a difference. We provide emergency aid and recovery support to Myanmar's earthquake victims, helping people rebuild their lives with hope and dignity.
         </Text>
         <Flex
           justify="center"
@@ -273,57 +311,103 @@ const Home: React.FC = () => {
             </Button>
           </Box>
         ) : (
-          <Flex
-            direction={{ base: 'column', md: 'row' }}
-            justify="center"
-            gap={5}
-          >
+          <Box>
+            <Flex
+              direction={{ base: 'column', md: 'row' }}
+              justify="center"
+              gap={5}
+              mb={6}
+            >
+              <Box
+                borderRadius="lg"
+                boxShadow="0 4px 12px rgba(0, 0, 0, 0.1)"
+                border="1px solid #e6f7ff"
+                p={4}
+                w={{ base: '100%', md: '300px' }}
+                textAlign="center"
+              >
+                <Heading as="h4" size="md" color="#666666" mb={2}>
+                  Total Donations
+                </Heading>
+                <Heading as="h3" size="lg" color="#389e0d">
+                  {totalDonations.toLocaleString()} MMK
+                </Heading>
+              </Box>
+              <Box
+                borderRadius="lg"
+                boxShadow="0 4px 12px rgba(0, 0, 0, 0.1)"
+                border="1px solid #e6f7ff"
+                p={4}
+                w={{ base: '100%', md: '300px' }}
+                textAlign="center"
+              >
+                <Heading as="h4" size="md" color="#666666" mb={2}>
+                  Total Donated
+                </Heading>
+                <Heading as="h3" size="lg" color="#389e0d">
+                  {totalDonated.toLocaleString()} MMK
+                </Heading>
+              </Box>
+              <Box
+                borderRadius="lg"
+                boxShadow="0 4px 12px rgba(0, 0, 0, 0.1)"
+                border="1px solid #e6f7ff"
+                p={4}
+                w={{ base: '100%', md: '300px' }}
+                textAlign="center"
+              >
+                <Heading as="h4" size="md" color="#666666" mb={2}>
+                  Total Donors
+                </Heading>
+                <Heading as="h3" size="lg" color="#1a1a1a">
+                  {totalDonors.toLocaleString()}
+                </Heading>
+              </Box>
+            </Flex>
+
+            {/* Donated Back Table */}
             <Box
               borderRadius="lg"
               boxShadow="0 4px 12px rgba(0, 0, 0, 0.1)"
               border="1px solid #e6f7ff"
               p={4}
-              w={{ base: '100%', md: '300px' }}
-              textAlign="center"
+              w={{ base: '100%', md: '80%' }}
+              mx="auto"
+              mt={6}
             >
-              <Heading as="h4" size="md" color="#666666" mb={2}>
-                Total Donations
+              <Heading as="h4" size="md" color="#666666" mb={4} textAlign="left">
+                Donated Back Details
               </Heading>
-              <Heading as="h3" size="lg" color="#389e0d">
-                {totalDonations.toLocaleString()} MMK
-              </Heading>
+              {donatedBackData.length > 0 ? (
+                <Box overflowX="auto">
+                  <Table variant="simple">
+                    <Thead>
+                      <Tr>
+                        <Th>Organization</Th>
+                        <Th>Items</Th>
+                        <Th>Type</Th>
+                        <Th>Total (MMK)</Th>
+                      </Tr>
+                    </Thead>
+                    <Tbody>
+                      {donatedBackData.map((item) => (
+                        <Tr key={item.id}>
+                          <Td>{item.organizationName}</Td>
+                          <Td>{item.items}</Td>
+                          <Td>{item.typeOfItems}</Td>
+                          <Td>{item.total.toLocaleString()}</Td>
+                        </Tr>
+                      ))}
+                    </Tbody>
+                  </Table>
+                </Box>
+              ) : (
+                <Text textAlign="center" color="gray.500">
+                  No donated back data available.
+                </Text>
+              )}
             </Box>
-            <Box
-              borderRadius="lg"
-              boxShadow="0 4px 12px rgba(0, 0, 0, 0.1)"
-              border="1px solid #e6f7ff"
-              p={4}
-              w={{ base: '100%', md: '300px' }}
-              textAlign="center"
-            >
-              <Heading as="h4" size="md" color="#666666" mb={2}>
-                Total Donated
-              </Heading>
-              <Heading as="h3" size="lg" color="#389e0d">
-                {totalDonated.toLocaleString()} MMK
-              </Heading>
-            </Box>
-            <Box
-              borderRadius="lg"
-              boxShadow="0 4px 12px rgba(0, 0, 0, 0.1)"
-              border="1px solid #e6f7ff"
-              p={4}
-              w={{ base: '100%', md: '300px' }}
-              textAlign="center"
-            >
-              <Heading as="h4" size="md" color="#666666" mb={2}>
-                Total Donors
-              </Heading>
-              <Heading as="h3" size="lg" color="#1a1a1a">
-                {totalDonors.toLocaleString()}
-              </Heading>
-            </Box>
-          </Flex>
+          </Box>
         )}
       </Box>
 
