@@ -32,6 +32,7 @@ interface Donation {
 interface DonatedBack {
   id: string;
   organizationName: string;
+  location: string;
   amount: number;
   items: string;
   typeOfItems: string;
@@ -75,6 +76,7 @@ const Home: React.FC = () => {
       const donatedBack: DonatedBack[] = donatedBackSnapshot.docs.map((doc) => ({
         id: doc.id,
         organizationName: doc.data().organizationName || 'Unknown',
+        location: doc.data().location || 'Unknown',
         amount: doc.data().amount || 0,
         items: doc.data().items || 'N/A',
         typeOfItems: doc.data().typeOfItems || 'N/A',
@@ -384,6 +386,7 @@ const Home: React.FC = () => {
                     <Thead>
                       <Tr>
                         <Th>Organization</Th>
+                        <Th>Location</Th>
                         <Th>Items</Th>
                         <Th>Type</Th>
                         <Th>Total (MMK)</Th>
@@ -393,6 +396,7 @@ const Home: React.FC = () => {
                       {donatedBackData.map((item) => (
                         <Tr key={item.id}>
                           <Td>{item.organizationName}</Td>
+                          <Td>{item.location}</Td>
                           <Td>{item.items}</Td>
                           <Td>{item.typeOfItems}</Td>
                           <Td>{item.total.toLocaleString()}</Td>

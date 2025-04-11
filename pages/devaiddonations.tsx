@@ -65,6 +65,7 @@ interface Donation {
 interface DonatedBack {
   id: string;
   organizationName: string;
+  location: string;
   count: number;
   items: string;
   typeOfItems: string;
@@ -95,6 +96,7 @@ const DonationsPage: React.FC = () => {
   const [donationFormData, setDonationFormData] = useState({ name: '', amount: '' });
   const [donatedBackFormData, setDonatedBackFormData] = useState({
     organizationName: '',
+    location: '',
     count: '',
     items: '',
     typeOfItems: '',
@@ -147,6 +149,7 @@ const DonationsPage: React.FC = () => {
     return snapshot.docs.map((doc) => ({
       id: doc.id,
       organizationName: doc.data().organizationName || 'Unknown',
+      location: doc.data().location || 'Unknown',
       count: doc.data().count || 0,
       items: doc.data().items || 'N/A',
       typeOfItems: doc.data().typeOfItems || 'N/A',
@@ -240,6 +243,7 @@ const DonationsPage: React.FC = () => {
     setEditingDonatedBack(donatedBack);
     setDonatedBackFormData({
       organizationName: donatedBack.organizationName,
+      location: donatedBack.location, // Add location here
       count: donatedBack.count.toString(),
       items: donatedBack.items,
       typeOfItems: donatedBack.typeOfItems,
@@ -272,6 +276,7 @@ const DonationsPage: React.FC = () => {
       const ref = doc(db, 'donationDetails', editingDonatedBack.id);
       const updatedValues = {
         organizationName: donatedBackFormData.organizationName,
+        location: donatedBackFormData.location,
         count: parseFloat(donatedBackFormData.count),
         items: donatedBackFormData.items,
         typeOfItems: donatedBackFormData.typeOfItems,
@@ -329,6 +334,7 @@ const DonationsPage: React.FC = () => {
   const handleAddDonatedBack = async () => {
     const newDonatedBack = {
       organizationName: donatedBackFormData.organizationName,
+      location: donatedBackFormData.location,
       count: parseFloat(donatedBackFormData.count),
       items: donatedBackFormData.items,
       typeOfItems: donatedBackFormData.typeOfItems,
@@ -338,7 +344,7 @@ const DonationsPage: React.FC = () => {
       const docRef = await addDoc(collection(db, 'donationDetails'), newDonatedBack);
       fetchDonatedBack(donatedBackPage, donatedBackSearchText); // Refresh pagination
       toast({ title: 'Success', description: 'Donated back added', status: 'success', duration: 3000, isClosable: true });
-      setDonatedBackFormData({ organizationName: '', count: '', items: '', typeOfItems: '', total: '' });
+      setDonatedBackFormData({ organizationName: '',location: '', count: '', items: '', typeOfItems: '', total: '' });
       setIsAddDonatedBackModalOpen(false);
     } catch (err) {
       console.error(err);
@@ -481,6 +487,7 @@ const DonationsPage: React.FC = () => {
               <Thead>
                 <Tr>
                   <Th>Organization</Th>
+                  <Th>Location</Th>
                   <Th>Count</Th>
                   <Th>Items</Th>
                   <Th>Type</Th>
@@ -488,26 +495,27 @@ const DonationsPage: React.FC = () => {
                   <Th>Actions</Th>
                 </Tr>
               </Thead>
-              <Tbody>
+                <Tbody>
                 {donatedBackData.map((record) => (
                   <Tr key={record.id}>
-                    <Td><Text fontWeight="bold">{record.organizationName}</Text></Td>
-                    <Td>{record.count.toLocaleString()}</Td>
-                    <Td>{record.items}</Td>
-                    <Td>{record.typeOfItems}</Td>
-                    <Td><Badge colorScheme="purple">{record.total.toLocaleString()} MMK</Badge></Td>
-                    <Td>
-                      <Menu>
-                        <MenuButton as={IconButton} icon={<FaGripVertical />} variant="ghost" />
-                        <MenuList>
-                          <MenuItem onClick={() => handleEditDonatedBack(record)}>Edit</MenuItem>
-                          <MenuItem onClick={() => handleDeleteDonatedBack(record.id)}>Delete</MenuItem>
-                        </MenuList>
-                      </Menu>
-                    </Td>
+                  <Td><Text fontWeight="bold">{record.organizationName}</Text></Td>
+                  <Td>{record.location}</Td>
+                  <Td>{record.count.toLocaleString()}</Td>
+                  <Td>{record.items}</Td>
+                  <Td>{record.typeOfItems}</Td>
+                  <Td><Badge colorScheme="purple">{record.total.toLocaleString()} MMK</Badge></Td>
+                  <Td>
+                    <Menu>
+                    <MenuButton as={IconButton} icon={<FaGripVertical />} variant="ghost" />
+                    <MenuList>
+                      <MenuItem onClick={() => handleEditDonatedBack(record)}>Edit</MenuItem>
+                      <MenuItem onClick={() => handleDeleteDonatedBack(record.id)}>Delete</MenuItem>
+                    </MenuList>
+                    </Menu>
+                  </Td>
                   </Tr>
                 ))}
-              </Tbody>
+                </Tbody>
             </Table>
           </Box>
           {renderPagination(donatedBackPage, donatedBackTotalPages, setDonatedBackPage)}
@@ -613,6 +621,15 @@ const DonationsPage: React.FC = () => {
                   />
                 </FormControl>
                 <FormControl isRequired>
+                  <FormLabel>Location</FormLabel>
+                  <ChakraInput
+                    name="location"
+                    value={donatedBackFormData.location}
+                    onChange={(e) => handleFormChange(e, 'donatedBack')}
+                    placeholder="Enter location"
+                  />
+                </FormControl>
+                <FormControl isRequired>
                   <FormLabel>Count</FormLabel>
                   <NumberInput min={1}>
                     <NumberInputField
@@ -680,6 +697,15 @@ const DonationsPage: React.FC = () => {
                     value={donatedBackFormData.organizationName}
                     onChange={(e) => handleFormChange(e, 'donatedBack')}
                     placeholder="Enter organization name"
+                  />
+                </FormControl>
+                <FormControl isRequired>
+                  <FormLabel>Location</FormLabel>
+                  <ChakraInput
+                    name="location"
+                    value={donatedBackFormData.location}
+                    onChange={(e) => handleFormChange(e, 'donatedBack')}
+                    placeholder="Enter location"
                   />
                 </FormControl>
                 <FormControl isRequired>
