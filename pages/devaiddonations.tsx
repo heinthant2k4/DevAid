@@ -62,134 +62,228 @@ interface Donation {
   compositeKey: string;
 }
 
+interface DonatedBack {
+  id: string;
+  organizationName: string;
+  count: number;
+  items: string;
+  typeOfItems: string;
+  total: number;
+}
+
 const PAGE_SIZE = 10;
 
 const DonationsPage: React.FC = () => {
-  const [data, setData] = useState<Donation[]>([]);
+  const [donationsData, setDonationsData] = useState<Donation[]>([]);
   const [allDonations, setAllDonations] = useState<Donation[]>([]);
+  const [donatedBackData, setDonatedBackData] = useState<DonatedBack[]>([]);
+  const [allDonatedBack, setAllDonatedBack] = useState<DonatedBack[]>([]);
   const [loading, setLoading] = useState(false);
-  const [lastDoc, setLastDoc] = useState<any>(null);
-  const [hasMore, setHasMore] = useState(true);
-  const [searchText, setSearchText] = useState('');
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [donatedBackLoading, setDonatedBackLoading] = useState(false);
+  const [donationsPage, setDonationsPage] = useState(1);
+  const [donatedBackPage, setDonatedBackPage] = useState(1);
+  const [donationsTotalPages, setDonationsTotalPages] = useState(1);
+  const [donatedBackTotalPages, setDonatedBackTotalPages] = useState(1);
+  const [donationsSearchText, setDonationsSearchText] = useState('');
+  const [donatedBackSearchText, setDonatedBackSearchText] = useState('');
+  const [isAddDonationModalOpen, setIsAddDonationModalOpen] = useState(false);
+  const [isEditDonationModalOpen, setIsEditDonationModalOpen] = useState(false);
+  const [isAddDonatedBackModalOpen, setIsAddDonatedBackModalOpen] = useState(false);
+  const [isEditDonatedBackModalOpen, setIsEditDonatedBackModalOpen] = useState(false);
   const [editingDonation, setEditingDonation] = useState<Donation | null>(null);
-  const [formData, setFormData] = useState({ name: '', amount: '' });
+  const [editingDonatedBack, setEditingDonatedBack] = useState<DonatedBack | null>(null);
+  const [donationFormData, setDonationFormData] = useState({ name: '', amount: '' });
+  const [donatedBackFormData, setDonatedBackFormData] = useState({
+    organizationName: '',
+    count: '',
+    items: '',
+    typeOfItems: '',
+    total: '',
+  });
   const toast = useToast();
 
+  // Fetch all donations
   const fetchAllDonations = async () => {
     const snapshot = await getDocsFromServer(collection(db, 'donations'));
     return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Donation));
   };
 
+  // Fetch donations with pagination
   const fetchDonations = React.useCallback(
-    async (loadMore = false) => {
+    async (page: number, search: string = '') => {
       try {
         setLoading(true);
-        let q = query(collection(db, 'donations'), limit(PAGE_SIZE));
-        if (loadMore && lastDoc) {
-          q = query(collection(db, 'donations'), startAfter(lastDoc), limit(PAGE_SIZE));
+        const all = await fetchAllDonations();
+        setAllDonations(all);
+
+        let filtered = all;
+        if (search) {
+          filtered = all.filter(
+            (d) =>
+              d.name.toLowerCase().includes(search.toLowerCase()) ||
+              d.compositeKey?.toLowerCase().includes(search.toLowerCase())
+          );
         }
-        const snapshot = await getDocs(q);
-        const newDonations = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Donation));
-        const updatedData = loadMore ? [...data, ...newDonations] : newDonations;
-        setData(updatedData);
-        setLastDoc(snapshot.docs[snapshot.docs.length - 1]);
-        setHasMore(snapshot.docs.length === PAGE_SIZE);
-        if (!loadMore) {
-          const all = await fetchAllDonations();
-          setAllDonations(all);
-        }
+
+        const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+        setDonationsTotalPages(totalPages);
+
+        const startIndex = (page - 1) * PAGE_SIZE;
+        const paginatedData = filtered.slice(startIndex, startIndex + PAGE_SIZE);
+        setDonationsData(paginatedData);
       } catch (error) {
         console.error('Error fetching donations:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load donations',
-          status: 'error',
-          duration: 3000,
-          isClosable: true,
-        });
+        toast({ title: 'Error', description: 'Failed to load donations', status: 'error', duration: 3000, isClosable: true });
       } finally {
         setLoading(false);
       }
     },
-    [data, lastDoc, toast]
+    [toast]
+  );
+
+  // Fetch all donated back entries
+  const fetchAllDonatedBack = async () => {
+    const snapshot = await getDocsFromServer(collection(db, 'donationDetails'));
+    return snapshot.docs.map((doc) => ({
+      id: doc.id,
+      organizationName: doc.data().organizationName || 'Unknown',
+      count: doc.data().count || 0,
+      items: doc.data().items || 'N/A',
+      typeOfItems: doc.data().typeOfItems || 'N/A',
+      total: doc.data().total || 0,
+    } as DonatedBack));
+  };
+
+  // Fetch donated back with pagination
+  const fetchDonatedBack = React.useCallback(
+    async (page: number, search: string = '') => {
+      try {
+        setDonatedBackLoading(true);
+        const all = await fetchAllDonatedBack();
+        setAllDonatedBack(all);
+
+        let filtered = all;
+        if (search) {
+          filtered = all.filter(
+            (d) =>
+              d.organizationName.toLowerCase().includes(search.toLowerCase()) ||
+              d.items.toLowerCase().includes(search.toLowerCase())
+          );
+        }
+
+        const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+        setDonatedBackTotalPages(totalPages);
+
+        const startIndex = (page - 1) * PAGE_SIZE;
+        const paginatedData = filtered.slice(startIndex, startIndex + PAGE_SIZE);
+        setDonatedBackData(paginatedData);
+      } catch (error) {
+        console.error('Error fetching donated back:', error);
+        toast({ title: 'Error', description: 'Failed to load donated back', status: 'error', duration: 3000, isClosable: true });
+      } finally {
+        setDonatedBackLoading(false);
+      }
+    },
+    [toast]
   );
 
   useEffect(() => {
-    fetchDonations();
-  }, []);
+    fetchDonations(donationsPage, donationsSearchText);
+    fetchDonatedBack(donatedBackPage, donatedBackSearchText);
+  }, [donationsPage, donatedBackPage, donationsSearchText, donatedBackSearchText, fetchDonations, fetchDonatedBack]);
 
-  const handleSearch = (value: string) => {
-    setSearchText(value);
-    const filtered = allDonations.filter(
-      (d) =>
-        d.name.toLowerCase().includes(value.toLowerCase()) ||
-        d.compositeKey?.toLowerCase().includes(value.toLowerCase())
-    );
-    setData(filtered);
-    setHasMore(false);
+  const handleDonationsSearch = (value: string) => {
+    setDonationsSearchText(value);
+    setDonationsPage(1); // Reset to page 1 on search
+    fetchDonations(1, value);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDonatedBackSearch = (value: string) => {
+    setDonatedBackSearchText(value);
+    setDonatedBackPage(1); // Reset to page 1 on search
+    fetchDonatedBack(1, value);
+  };
+
+  const handleDeleteDonation = async (id: string) => {
     try {
       await deleteDoc(doc(db, 'donations', id));
-      setData((prev) => prev.filter((item) => item.id !== id));
+      setDonationsData((prev) => prev.filter((item) => item.id !== id));
       setAllDonations((prev) => prev.filter((item) => item.id !== id));
-      toast({
-        title: 'Success',
-        description: 'Donation deleted',
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
-      });
+      fetchDonations(donationsPage, donationsSearchText); // Refresh pagination
+      toast({ title: 'Success', description: 'Donation deleted', status: 'success', duration: 3000, isClosable: true });
     } catch (err) {
       console.error('Delete failed:', err);
-      toast({
-        title: 'Error',
-        description: 'Failed to delete',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
+      toast({ title: 'Error', description: 'Failed to delete', status: 'error', duration: 3000, isClosable: true });
     }
   };
 
-  const handleEdit = (donation: Donation) => {
-    setEditingDonation(donation);
-    setFormData({ name: donation.name, amount: donation.amount.toString() });
-    setIsEditModalOpen(true);
+  const handleDeleteDonatedBack = async (id: string) => {
+    try {
+      await deleteDoc(doc(db, 'donationDetails', id));
+      setDonatedBackData((prev) => prev.filter((item) => item.id !== id));
+      setAllDonatedBack((prev) => prev.filter((item) => item.id !== id));
+      fetchDonatedBack(donatedBackPage, donatedBackSearchText); // Refresh pagination
+      toast({ title: 'Success', description: 'Donated back entry deleted', status: 'success', duration: 3000, isClosable: true });
+    } catch (err) {
+      console.error('Delete failed:', err);
+      toast({ title: 'Error', description: 'Failed to delete', status: 'error', duration: 3000, isClosable: true });
+    }
   };
 
-  const handleEditSubmit = async () => {
+  const handleEditDonation = (donation: Donation) => {
+    setEditingDonation(donation);
+    setDonationFormData({ name: donation.name, amount: donation.amount.toString() });
+    setIsEditDonationModalOpen(true);
+  };
+
+  const handleEditDonatedBack = (donatedBack: DonatedBack) => {
+    setEditingDonatedBack(donatedBack);
+    setDonatedBackFormData({
+      organizationName: donatedBack.organizationName,
+      count: donatedBack.count.toString(),
+      items: donatedBack.items,
+      typeOfItems: donatedBack.typeOfItems,
+      total: donatedBack.total.toString(),
+    });
+    setIsEditDonatedBackModalOpen(true);
+  };
+
+  const handleEditDonationSubmit = async () => {
     if (!editingDonation) return;
     try {
       const ref = doc(db, 'donations', editingDonation.id);
       const updatedValues = {
-        name: formData.name,
-        amount: parseFloat(formData.amount),
+        name: donationFormData.name,
+        amount: parseFloat(donationFormData.amount),
       };
       await updateDoc(ref, updatedValues);
-      const updated: Donation = { ...editingDonation, ...updatedValues };
-      setData((prev) => prev.map((d) => (d.id === updated.id ? updated : d)));
-      setAllDonations((prev) => prev.map((d) => (d.id === updated.id ? updated : d)));
-      toast({
-        title: 'Success',
-        description: 'Donation updated',
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
-      });
-      setIsEditModalOpen(false);
+      fetchDonations(donationsPage, donationsSearchText); // Refresh pagination
+      toast({ title: 'Success', description: 'Donation updated', status: 'success', duration: 3000, isClosable: true });
+      setIsEditDonationModalOpen(false);
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Error',
-        description: 'Failed to update donation',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
+      toast({ title: 'Error', description: 'Failed to update donation', status: 'error', duration: 3000, isClosable: true });
+    }
+  };
+
+  const handleEditDonatedBackSubmit = async () => {
+    if (!editingDonatedBack) return;
+    try {
+      const ref = doc(db, 'donationDetails', editingDonatedBack.id);
+      const updatedValues = {
+        organizationName: donatedBackFormData.organizationName,
+        count: parseFloat(donatedBackFormData.count),
+        items: donatedBackFormData.items,
+        typeOfItems: donatedBackFormData.typeOfItems,
+        total: parseFloat(donatedBackFormData.total),
+      };
+      await updateDoc(ref, updatedValues);
+      fetchDonatedBack(donatedBackPage, donatedBackSearchText); // Refresh pagination
+      toast({ title: 'Success', description: 'Donated back updated', status: 'success', duration: 3000, isClosable: true });
+      setIsEditDonatedBackModalOpen(false);
+    } catch (err) {
+      console.error(err);
+      toast({ title: 'Error', description: 'Failed to update donated back', status: 'error', duration: 3000, isClosable: true });
     }
   };
 
@@ -207,137 +301,220 @@ const DonationsPage: React.FC = () => {
       link.href = URL.createObjectURL(blob);
       link.download = `${name}_certificate.pdf`;
       link.click();
-      toast({
-        title: 'Success',
-        description: 'Certificate generated',
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
-      });
+      toast({ title: 'Success', description: 'Certificate generated', status: 'success', duration: 3000, isClosable: true });
     } catch (error) {
       console.error('Certificate error:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to generate certificate',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
+      toast({ title: 'Error', description: 'Failed to generate certificate', status: 'error', duration: 3000, isClosable: true });
     }
   };
 
   const handleAddDonation = async () => {
     const newDonation = {
-      name: formData.name,
-      amount: parseFloat(formData.amount),
+      name: donationFormData.name,
+      amount: parseFloat(donationFormData.amount),
       compositeKey: uuidv4(),
     };
     try {
       const docRef = await addDoc(collection(db, 'donations'), newDonation);
-      const added: Donation = { id: docRef.id, ...newDonation };
-      setData((prev) => [added, ...prev]);
-      setAllDonations((prev) => [added, ...prev]);
-      toast({
-        title: 'Success',
-        description: 'Donation added',
-        status: 'success',
-        duration: 3000,
-        isClosable: true,
-      });
-      setFormData({ name: '', amount: '' });
-      setIsAddModalOpen(false);
+      fetchDonations(donationsPage, donationsSearchText); // Refresh pagination
+      toast({ title: 'Success', description: 'Donation added', status: 'success', duration: 3000, isClosable: true });
+      setDonationFormData({ name: '', amount: '' });
+      setIsAddDonationModalOpen(false);
     } catch (err) {
       console.error(err);
-      toast({
-        title: 'Error',
-        description: 'Failed to add donation',
-        status: 'error',
-        duration: 3000,
-        isClosable: true,
-      });
+      toast({ title: 'Error', description: 'Failed to add donation', status: 'error', duration: 3000, isClosable: true });
     }
   };
 
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement> | { target: { name: string; value: string } }) => {
+  const handleAddDonatedBack = async () => {
+    const newDonatedBack = {
+      organizationName: donatedBackFormData.organizationName,
+      count: parseFloat(donatedBackFormData.count),
+      items: donatedBackFormData.items,
+      typeOfItems: donatedBackFormData.typeOfItems,
+      total: parseFloat(donatedBackFormData.total),
+    };
+    try {
+      const docRef = await addDoc(collection(db, 'donationDetails'), newDonatedBack);
+      fetchDonatedBack(donatedBackPage, donatedBackSearchText); // Refresh pagination
+      toast({ title: 'Success', description: 'Donated back added', status: 'success', duration: 3000, isClosable: true });
+      setDonatedBackFormData({ organizationName: '', count: '', items: '', typeOfItems: '', total: '' });
+      setIsAddDonatedBackModalOpen(false);
+    } catch (err) {
+      console.error(err);
+      toast({ title: 'Error', description: 'Failed to add donated back', status: 'error', duration: 3000, isClosable: true });
+    }
+  };
+
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement> | { target: { name: string; value: string } }, type: 'donation' | 'donatedBack') => {
     const { name, value } = 'target' in e ? e.target : e;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (type === 'donation') {
+      setDonationFormData((prev) => ({ ...prev, [name]: value }));
+    } else {
+      setDonatedBackFormData((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const renderPagination = (currentPage: number, totalPages: number, setPage: (page: number) => void) => {
+    const pages = [];
+    for (let i = 1; i <= totalPages; i++) {
+      pages.push(
+        <Button
+          key={i}
+          onClick={() => setPage(i)}
+          colorScheme={currentPage === i ? 'blue' : 'gray'}
+          variant={currentPage === i ? 'solid' : 'outline'}
+          size="sm"
+          mx={1}
+        >
+          {i}
+        </Button>
+      );
+    }
+    return (
+      <HStack mt={4} justify="center">
+        <Button
+          onClick={() => setPage(currentPage - 1)}
+          isDisabled={currentPage === 1}
+          colorScheme="blue"
+          variant="outline"
+          size="sm"
+        >
+          Previous
+        </Button>
+        {pages}
+        <Button
+          onClick={() => setPage(currentPage + 1)}
+          isDisabled={currentPage === totalPages}
+          colorScheme="blue"
+          variant="outline"
+          size="sm"
+        >
+          Next
+        </Button>
+      </HStack>
+    );
   };
 
   return (
     <AdminLayout>
-      <VStack spacing={4} align="stretch">
-        <HStack justify="space-between" wrap="wrap" spacing={3}>
-          <Heading as="h1" size="lg" fontWeight="bold">
-            Donors ({data.length})
-          </Heading>
-          <HStack spacing={3}>
-            <Input
-              placeholder="Search by name or reference"
-              value={searchText}
-              onChange={(e) => handleSearch(e.target.value)}
-              w={{ base: 'full', md: '300px' }}
-            />
-            <Button onClick={() => fetchDonations()} isLoading={loading} colorScheme="blue">
-              Refresh
-            </Button>
-            <Button onClick={() => setIsAddModalOpen(true)} colorScheme="teal">
-              Add Donation
-            </Button>
+      <VStack spacing={8} align="stretch">
+        {/* Donors Section */}
+        <VStack spacing={4} align="stretch">
+          <HStack justify="space-between" wrap="wrap" spacing={3}>
+            <Heading as="h1" size="lg" fontWeight="bold">
+              Donors ({allDonations.length})
+            </Heading>
+            <HStack spacing={3}>
+              <Input
+                placeholder="Search donors by name or reference"
+                value={donationsSearchText}
+                onChange={(e) => handleDonationsSearch(e.target.value)}
+                w={{ base: 'full', md: '300px' }}
+              />
+              <Button onClick={() => fetchDonations(donationsPage, donationsSearchText)} isLoading={loading} colorScheme="blue">
+                Refresh
+              </Button>
+              <Button onClick={() => setIsAddDonationModalOpen(true)} colorScheme="teal">
+                Add Donation
+              </Button>
+            </HStack>
           </HStack>
-        </HStack>
 
-        <Box overflowX="auto">
-          <Table variant="simple">
-            <Thead>
-              <Tr>
-                <Th>Donor Name</Th>
-                <Th>Amount (MMK)</Th>
-                <Th>Reference</Th>
-                <Th>Actions</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {data.map((record) => (
-                <Tr key={record.id}>
-                  <Td>
-                    <Text fontWeight="bold">{record.name}</Text>
-                  </Td>
-                  <Td>
-                    <Badge colorScheme="green">{record.amount.toLocaleString()} MMK</Badge>
-                  </Td>
-                  <Td>
-                    <Text fontFamily="monospace" color="gray.500" fontSize="sm">
-                      {record.compositeKey ? `${record.compositeKey.slice(0, 8)}...` : 'N/A'}
-                    </Text>
-                  </Td>
-                  <Td>
-                    <Menu>
-                      <MenuButton as={IconButton} icon={<FaGripVertical />} variant="ghost" />
-                      <MenuList>
-                        <MenuItem onClick={() => handleEdit(record)}>Edit</MenuItem>
-                        <MenuItem onClick={() => handleDelete(record.id)}>Delete</MenuItem>
-                        <MenuItem onClick={() => generateCertificate(record.name, record.amount)}>
-                          Generate Certificate
-                        </MenuItem>
-                      </MenuList>
-                    </Menu>
-                  </Td>
+          <Box overflowX="auto">
+            <Table variant="simple">
+              <Thead>
+                <Tr>
+                  <Th>Donor Name</Th>
+                  <Th>Amount (MMK)</Th>
+                  <Th>Reference</Th>
+                  <Th>Actions</Th>
                 </Tr>
-              ))}
-            </Tbody>
-          </Table>
-        </Box>
+              </Thead>
+              <Tbody>
+                {donationsData.map((record) => (
+                  <Tr key={record.id}>
+                    <Td><Text fontWeight="bold">{record.name}</Text></Td>
+                    <Td><Badge colorScheme="green">{record.amount.toLocaleString()} MMK</Badge></Td>
+                    <Td><Text fontFamily="monospace" color="gray.500" fontSize="sm">{record.compositeKey ? `${record.compositeKey.slice(0, 8)}...` : 'N/A'}</Text></Td>
+                    <Td>
+                      <Menu>
+                        <MenuButton as={IconButton} icon={<FaGripVertical />} variant="ghost" />
+                        <MenuList>
+                          <MenuItem onClick={() => handleEditDonation(record)}>Edit</MenuItem>
+                          <MenuItem onClick={() => handleDeleteDonation(record.id)}>Delete</MenuItem>
+                          <MenuItem onClick={() => generateCertificate(record.name, record.amount)}>Generate Certificate</MenuItem>
+                        </MenuList>
+                      </Menu>
+                    </Td>
+                  </Tr>
+                ))}
+              </Tbody>
+            </Table>
+          </Box>
+          {renderPagination(donationsPage, donationsTotalPages, setDonationsPage)}
+        </VStack>
 
-        {hasMore && (
-          <Center mt={4}>
-            <Button onClick={() => fetchDonations(true)} isLoading={loading} colorScheme="blue">
-              Load More
-            </Button>
-          </Center>
-        )}
+        {/* Donated Back Section */}
+        <VStack spacing={4} align="stretch">
+          <HStack justify="space-between" wrap="wrap" spacing={3}>
+            <Heading as="h2" size="md" fontWeight="bold">
+              Donated Back ({allDonatedBack.length})
+            </Heading>
+            <HStack spacing={3}>
+              <Input
+                placeholder="Search donated back by organization or items"
+                value={donatedBackSearchText}
+                onChange={(e) => handleDonatedBackSearch(e.target.value)}
+                w={{ base: 'full', md: '300px' }}
+              />
+              <Button onClick={() => fetchDonatedBack(donatedBackPage, donatedBackSearchText)} isLoading={donatedBackLoading} colorScheme="purple">
+                Refresh
+              </Button>
+              <Button onClick={() => setIsAddDonatedBackModalOpen(true)} colorScheme="purple">
+                Add Donated Back
+              </Button>
+            </HStack>
+          </HStack>
+          <Box overflowX="auto">
+            <Table variant="simple">
+              <Thead>
+                <Tr>
+                  <Th>Organization</Th>
+                  <Th>Count</Th>
+                  <Th>Items</Th>
+                  <Th>Type</Th>
+                  <Th>Total (MMK)</Th>
+                  <Th>Actions</Th>
+                </Tr>
+              </Thead>
+              <Tbody>
+                {donatedBackData.map((record) => (
+                  <Tr key={record.id}>
+                    <Td><Text fontWeight="bold">{record.organizationName}</Text></Td>
+                    <Td>{record.count.toLocaleString()}</Td>
+                    <Td>{record.items}</Td>
+                    <Td>{record.typeOfItems}</Td>
+                    <Td><Badge colorScheme="purple">{record.total.toLocaleString()} MMK</Badge></Td>
+                    <Td>
+                      <Menu>
+                        <MenuButton as={IconButton} icon={<FaGripVertical />} variant="ghost" />
+                        <MenuList>
+                          <MenuItem onClick={() => handleEditDonatedBack(record)}>Edit</MenuItem>
+                          <MenuItem onClick={() => handleDeleteDonatedBack(record.id)}>Delete</MenuItem>
+                        </MenuList>
+                      </Menu>
+                    </Td>
+                  </Tr>
+                ))}
+              </Tbody>
+            </Table>
+          </Box>
+          {renderPagination(donatedBackPage, donatedBackTotalPages, setDonatedBackPage)}
+        </VStack>
 
         {/* Add Donation Modal */}
-        <Modal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)}>
+        <Modal isOpen={isAddDonationModalOpen} onClose={() => setIsAddDonationModalOpen(false)}>
           <ModalOverlay />
           <ModalContent>
             <ModalHeader>Add Donation</ModalHeader>
@@ -348,8 +525,8 @@ const DonationsPage: React.FC = () => {
                   <FormLabel>Donor Name</FormLabel>
                   <ChakraInput
                     name="name"
-                    value={formData.name}
-                    onChange={handleFormChange}
+                    value={donationFormData.name}
+                    onChange={(e) => handleFormChange(e, 'donation')}
                     placeholder="Enter donor name"
                   />
                 </FormControl>
@@ -358,8 +535,8 @@ const DonationsPage: React.FC = () => {
                   <NumberInput min={1}>
                     <NumberInputField
                       name="amount"
-                      value={formData.amount}
-                      onChange={(e) => handleFormChange({ target: { name: 'amount', value: e.target.value } })}
+                      value={donationFormData.amount}
+                      onChange={(e) => handleFormChange({ target: { name: 'amount', value: e.target.value } }, 'donation')}
                       placeholder="Enter donation amount"
                     />
                   </NumberInput>
@@ -370,7 +547,7 @@ const DonationsPage: React.FC = () => {
               <Button colorScheme="teal" onClick={handleAddDonation} mr={3}>
                 Add
               </Button>
-              <Button variant="ghost" onClick={() => setIsAddModalOpen(false)}>
+              <Button variant="ghost" onClick={() => setIsAddDonationModalOpen(false)}>
                 Cancel
               </Button>
             </ModalFooter>
@@ -378,7 +555,7 @@ const DonationsPage: React.FC = () => {
         </Modal>
 
         {/* Edit Donation Modal */}
-        <Modal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)}>
+        <Modal isOpen={isEditDonationModalOpen} onClose={() => setIsEditDonationModalOpen(false)}>
           <ModalOverlay />
           <ModalContent>
             <ModalHeader>Edit Donation</ModalHeader>
@@ -389,8 +566,8 @@ const DonationsPage: React.FC = () => {
                   <FormLabel>Donor Name</FormLabel>
                   <ChakraInput
                     name="name"
-                    value={formData.name}
-                    onChange={handleFormChange}
+                    value={donationFormData.name}
+                    onChange={(e) => handleFormChange(e, 'donation')}
                     placeholder="Enter donor name"
                   />
                 </FormControl>
@@ -399,8 +576,8 @@ const DonationsPage: React.FC = () => {
                   <NumberInput min={1}>
                     <NumberInputField
                       name="amount"
-                      value={formData.amount}
-                      onChange={(e) => handleFormChange({ target: { name: 'amount', value: e.target.value } })}
+                      value={donationFormData.amount}
+                      onChange={(e) => handleFormChange({ target: { name: 'amount', value: e.target.value } }, 'donation')}
                       placeholder="Enter donation amount"
                     />
                   </NumberInput>
@@ -408,10 +585,150 @@ const DonationsPage: React.FC = () => {
               </VStack>
             </ModalBody>
             <ModalFooter>
-              <Button colorScheme="blue" onClick={handleEditSubmit} mr={3}>
+              <Button colorScheme="blue" onClick={handleEditDonationSubmit} mr={3}>
                 Update
               </Button>
-              <Button variant="ghost" onClick={() => setIsEditModalOpen(false)}>
+              <Button variant="ghost" onClick={() => setIsEditDonationModalOpen(false)}>
+                Cancel
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+
+        {/* Add Donated Back Modal */}
+        <Modal isOpen={isAddDonatedBackModalOpen} onClose={() => setIsAddDonatedBackModalOpen(false)}>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Add Donated Back</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <VStack spacing={4}>
+                <FormControl isRequired>
+                  <FormLabel>Organization Name</FormLabel>
+                  <ChakraInput
+                    name="organizationName"
+                    value={donatedBackFormData.organizationName}
+                    onChange={(e) => handleFormChange(e, 'donatedBack')}
+                    placeholder="Enter organization name"
+                  />
+                </FormControl>
+                <FormControl isRequired>
+                  <FormLabel>Count</FormLabel>
+                  <NumberInput min={1}>
+                    <NumberInputField
+                      name="count"
+                      value={donatedBackFormData.count}
+                      onChange={(e) => handleFormChange({ target: { name: 'count', value: e.target.value } }, 'donatedBack')}
+                      placeholder="Enter count"
+                    />
+                  </NumberInput>
+                </FormControl>
+                <FormControl isRequired>
+                  <FormLabel>Items</FormLabel>
+                  <ChakraInput
+                    name="items"
+                    value={donatedBackFormData.items}
+                    onChange={(e) => handleFormChange(e, 'donatedBack')}
+                    placeholder="Enter items"
+                  />
+                </FormControl>
+                <FormControl isRequired>
+                  <FormLabel>Type of Items</FormLabel>
+                  <ChakraInput
+                    name="typeOfItems"
+                    value={donatedBackFormData.typeOfItems}
+                    onChange={(e) => handleFormChange(e, 'donatedBack')}
+                    placeholder="Enter type of items"
+                  />
+                </FormControl>
+                <FormControl isRequired>
+                  <FormLabel>Total (MMK)</FormLabel>
+                  <NumberInput min={1}>
+                    <NumberInputField
+                      name="total"
+                      value={donatedBackFormData.total}
+                      onChange={(e) => handleFormChange({ target: { name: 'total', value: e.target.value } }, 'donatedBack')}
+                      placeholder="Enter total amount"
+                    />
+                  </NumberInput>
+                </FormControl>
+              </VStack>
+            </ModalBody>
+            <ModalFooter>
+              <Button colorScheme="purple" onClick={handleAddDonatedBack} mr={3}>
+                Add
+              </Button>
+              <Button variant="ghost" onClick={() => setIsAddDonatedBackModalOpen(false)}>
+                Cancel
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </Modal>
+
+        {/* Edit Donated Back Modal */}
+        <Modal isOpen={isEditDonatedBackModalOpen} onClose={() => setIsEditDonatedBackModalOpen(false)}>
+          <ModalOverlay />
+          <ModalContent>
+            <ModalHeader>Edit Donated Back</ModalHeader>
+            <ModalCloseButton />
+            <ModalBody>
+              <VStack spacing={4}>
+                <FormControl isRequired>
+                  <FormLabel>Organization Name</FormLabel>
+                  <ChakraInput
+                    name="organizationName"
+                    value={donatedBackFormData.organizationName}
+                    onChange={(e) => handleFormChange(e, 'donatedBack')}
+                    placeholder="Enter organization name"
+                  />
+                </FormControl>
+                <FormControl isRequired>
+                  <FormLabel>Count</FormLabel>
+                  <NumberInput min={1}>
+                    <NumberInputField
+                      name="count"
+                      value={donatedBackFormData.count}
+                      onChange={(e) => handleFormChange({ target: { name: 'count', value: e.target.value } }, 'donatedBack')}
+                      placeholder="Enter count"
+                    />
+                  </NumberInput>
+                </FormControl>
+                <FormControl isRequired>
+                  <FormLabel>Items</FormLabel>
+                  <ChakraInput
+                    name="items"
+                    value={donatedBackFormData.items}
+                    onChange={(e) => handleFormChange(e, 'donatedBack')}
+                    placeholder="Enter items"
+                  />
+                </FormControl>
+                <FormControl isRequired>
+                  <FormLabel>Type of Items</FormLabel>
+                  <ChakraInput
+                    name="typeOfItems"
+                    value={donatedBackFormData.typeOfItems}
+                    onChange={(e) => handleFormChange(e, 'donatedBack')}
+                    placeholder="Enter type of items"
+                  />
+                </FormControl>
+                <FormControl isRequired>
+                  <FormLabel>Total (MMK)</FormLabel>
+                  <NumberInput min={1}>
+                    <NumberInputField
+                      name="total"
+                      value={donatedBackFormData.total}
+                      onChange={(e) => handleFormChange({ target: { name: 'total', value: e.target.value } }, 'donatedBack')}
+                      placeholder="Enter total amount"
+                    />
+                  </NumberInput>
+                </FormControl>
+              </VStack>
+            </ModalBody>
+            <ModalFooter>
+              <Button colorScheme="purple" onClick={handleEditDonatedBackSubmit} mr={3}>
+                Update
+              </Button>
+              <Button variant="ghost" onClick={() => setIsEditDonatedBackModalOpen(false)}>
                 Cancel
               </Button>
             </ModalFooter>
