@@ -31,7 +31,7 @@ import { collection, query, limit, startAfter, getDocs, orderBy, startAt, where,
 import { db } from '@/lib/firebaseClient';
 import { ArrowUpIcon, DownloadIcon, ArrowLeftIcon, CloseIcon, SearchIcon } from '@chakra-ui/icons';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
-import { FaDollarSign } from 'react-icons/fa';
+import { FaHandHoldingHeart } from 'react-icons/fa';
 
 interface Donation {
   id: string;
@@ -187,26 +187,6 @@ const Donations: React.FC = () => {
         Donations
       </Heading>
 
-      {/* Search Input */}
-      <InputGroup maxW="400px" mx="auto" mb={6}>
-        <Input
-          value={searchQuery}
-          onChange={handleSearchChange}
-          placeholder="Search by donor name"
-          size="lg"
-          bg="white"
-          borderColor="blue.200"
-          _focus={{ borderColor: 'blue.500', boxShadow: '0 0 0 1px #3182ce' }}
-          aria-label="Search donations"
-        />
-        <InputRightElement>
-          {searchQuery ? (
-            <CloseIcon color="gray.400" cursor="pointer" onClick={clearSearch} />
-          ) : (
-            <SearchIcon color="gray.400" />
-          )}
-        </InputRightElement>
-      </InputGroup>
 
       {/* Scroll to Top Button */}
       <Button
@@ -243,7 +223,7 @@ const Donations: React.FC = () => {
                 <VStack spacing={1}>
                   <Text fontSize="md" color="gray.600">Total Donations</Text>
                   <Heading as="h3" size="lg" color="green.500">
-                  <Icon as={FaDollarSign} color="green.500" boxSize={6} />
+                  <Icon as={FaHandHoldingHeart} color="green.500" boxSize={6} />
                     {totalDonations.toLocaleString()} MMK
                   </Heading>
                 </VStack>
@@ -252,6 +232,27 @@ const Donations: React.FC = () => {
           </Card>
         )}
       </Center>
+
+      {/* Search Input */}
+      <InputGroup maxW="400px" mx="auto" mb={6}>
+        <Input
+          value={searchQuery}
+          onChange={handleSearchChange}
+          placeholder="Search by donor name"
+          size="lg"
+          bg="white"
+          borderColor="blue.200"
+          _focus={{ borderColor: 'blue.500', boxShadow: '0 0 0 1px #3182ce' }}
+          aria-label="Search donations"
+        />
+        <InputRightElement>
+          {searchQuery ? (
+            <CloseIcon color="gray.400" cursor="pointer" onClick={clearSearch} />
+          ) : (
+            <SearchIcon color="gray.400" />
+          )}
+        </InputRightElement>
+      </InputGroup>
 
       {/* Donations Table */}
       <Card boxShadow="lg" bg="white" rounded="lg" overflow="hidden">
