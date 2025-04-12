@@ -16,6 +16,7 @@ import {
   Tr,
   Th,
   Td,
+  Image,
 } from '@chakra-ui/react';
 import { FaDollarSign, FaEye, FaArrowUp } from 'react-icons/fa';
 import Link from 'next/link';
@@ -48,7 +49,17 @@ const Home: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const toast = useToast();
 
-  // Fetch data from Firestore on component mount
+  // Array for social media footage images, with 6 images
+  const socialMediaFootages = [
+    '/images/donated_footages/DB1.jpg',
+    '/images/donated_footages/DB2.jpg',
+    '/images/donated_footages/DB3.jpg',
+    '/images/donated_footages/DB4.jpg',
+    '/images/donated_footages/DB5.jpg',
+    '/images/donated_footages/DB6.jpg',
+  ];
+
+  // Fetch data from Firestore
   const fetchDonationStats = async () => {
     try {
       setLoading(true);
@@ -63,15 +74,15 @@ const Home: React.FC = () => {
         compositeKey: doc.data().compositeKey || 'N/A',
       }));
 
-      // Calculate total donations (sum of amounts from 'donations')
+      // Calculate total donations
       const donationSum = donations.reduce((acc, donation) => acc + (Number(donation.amount) || 0), 0);
       setTotalDonations(donationSum);
 
-      // Set total donors (count of unique donors from 'donations')
+      // Set total donors
       const uniqueDonors = new Set(donations.map((donation) => donation.name || 'Anonymous')).size;
       setTotalDonors(uniqueDonors);
 
-      // Fetch donatedBack from the 'donationDetails' collection (as per Dashboard)
+      // Fetch donatedBack from the 'donationDetails' collection
       const donatedBackSnapshot = await getDocs(collection(db, 'donationDetails'));
       const donatedBack: DonatedBack[] = donatedBackSnapshot.docs.map((doc) => ({
         id: doc.id,
@@ -83,11 +94,11 @@ const Home: React.FC = () => {
         total: doc.data().total || 0,
       }));
 
-      // Calculate total donated (sum of totals from 'donationDetails')
+      // Calculate total donated
       const donatedSum = donatedBack.reduce((acc, donation) => acc + (Number(donation.total) || 0), 0);
       setTotalDonated(donatedSum);
 
-      // Set donatedBack data for the table
+      // Set donatedBack data
       setDonatedBackData(donatedBack);
 
       console.log('Fetched donations:', donations);
@@ -95,6 +106,8 @@ const Home: React.FC = () => {
       console.log('Total donors:', uniqueDonors);
       console.log('Fetched donatedBack:', donatedBack);
       console.log('Total donated:', donatedSum);
+      console.log('donatedBackData length:', donatedBack.length);
+      console.log('Social media footages:', socialMediaFootages);
     } catch (error) {
       console.error('Error fetching donation stats:', error);
       setError('Failed to fetch donation stats. Please try again.');
@@ -367,7 +380,7 @@ const Home: React.FC = () => {
               </Box>
             </Flex>
 
-            {/* Donated Back Table */}
+            {/* Donated Back Table and Footage */}
             <Box
               borderRadius="lg"
               boxShadow="0 4px 12px rgba(0, 0, 0, 0.1)"
@@ -381,30 +394,75 @@ const Home: React.FC = () => {
                 Donated Back Details
               </Heading>
               {donatedBackData.length > 0 ? (
-                <Box overflowX="auto">
-                  <Table variant="simple">
-                    <Thead>
-                      <Tr>
-                        <Th>Organization</Th>
-                        <Th>Location</Th>
-                        <Th>Items</Th>
-                        <Th>Type</Th>
-                        <Th>Total (MMK)</Th>
-                      </Tr>
-                    </Thead>
-                    <Tbody>
-                      {donatedBackData.map((item) => (
-                        <Tr key={item.id}>
-                          <Td>{item.organizationName}</Td>
-                          <Td>{item.location}</Td>
-                          <Td>{item.items}</Td>
-                          <Td>{item.typeOfItems}</Td>
-                          <Td>{item.total.toLocaleString()}</Td>
+                <>
+                  <Box overflowX="auto">
+                    <Table variant="simple">
+                      <Thead>
+                        <Tr>
+                          <Th>Organization</Th>
+                          <Th>Location</Th>
+                          <Th>Items</Th>
+                          <Th>Type</Th>
+                          <Th>Total (MMK)</Th>
                         </Tr>
+                      </Thead>
+                      <Tbody>
+                        {donatedBackData.map((item) => (
+                          <Tr key={item.id}>
+                            <Td>{item.organizationName}</Td>
+                            <Td>{item.location}</Td>
+                            <Td>{item.items}</Td>
+                            <Td>{item.typeOfItems}</Td>
+                            <Td>{item.total.toLocaleString()}</Td>
+                          </Tr>
+                        ))}
+                      </Tbody>
+                    </Table>
+                  </Box>
+                  {/* Social Media Footages */}
+                  <Box mt={6}>
+                    <Heading as="h5" size="sm" color="#666666" mb={4} textAlign="left">
+                      Social Media Footages
+                    </Heading>
+                    <Flex wrap="wrap" gap={4} justify="center">
+                      {socialMediaFootages.map((imageUrl, index) => (
+                        <Box
+                          key={index}
+                          borderRadius="md"
+                          overflow="hidden"
+                          boxShadow="0 2px 8px rgba(0, 0, 0, 0.1)"
+                          w={{ base: '100%', sm: '45%', md: '30%' }}
+                          maxW="300px"
+                        >
+                          <Image
+                            src={imageUrl}
+                            alt={`Social media footage ${index + 1}`}
+                            fallbackSrc="/images/placeholder.jpg"
+                            objectFit="cover"
+                            w="100%"
+                            h="200px"
+                          />
+                          <Box p={2}>
+                            <Text fontSize="sm" color="#666666" isTruncated>
+                              Footage {index + 1}
+                            </Text>
+                            <Button
+                              as={Link}
+                              href={`/image_detail?image=${encodeURIComponent(imageUrl)}`}
+                              size="sm"
+                              mt={2}
+                              bg="#1890ff"
+                              color="#ffffff"
+                              _hover={{ bg: '#40a9ff' }}
+                            >
+                              View Full Image
+                            </Button>
+                          </Box>
+                        </Box>
                       ))}
-                    </Tbody>
-                  </Table>
-                </Box>
+                    </Flex>
+                  </Box>
+                </>
               ) : (
                 <Text textAlign="center" color="gray.500">
                   No donated back data available.
